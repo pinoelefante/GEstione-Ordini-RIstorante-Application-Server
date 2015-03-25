@@ -2,36 +2,30 @@ package it.geori.as.controllers;
 
 import it.geori.as.data.interfaces.Identifier;
 
-import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 public class CacheManager {
-	private ArrayList<Identifier> cache;
+	private HashMap<Integer, Identifier> cache;
 	
 	public CacheManager(){
-		cache = new ArrayList<Identifier>();
+		cache = new HashMap<Integer, Identifier>();
 	}
 	
-	public ArrayList<Identifier> getCache(){
+	public Map<Integer, Identifier> getCache(){
 		return cache;
 	}
 	
 	public void addItemToCache(Identifier i){
-		cache.add(i);
+		cache.put(i.getID(), i);
 	}
 	public void updateItemToCache(Identifier t){
-		for(int i=0;i<cache.size();i++){
-			if(cache.get(i).getID()==t.getID()){
-				cache.set(i, t);
-				break;
-			}
-		}
+		cache.put(t.getID(), t);
 	}
 	public void removeItemFromCache(int id){
-		for(int i=0;i<cache.size();i++){
-			if(cache.get(i).getID()==id){
-				cache.remove(i);
-				break;
-			}
-		}
+		cache.remove(id);
+	}
+	public Identifier getItem(int id){
+		return cache.get(id);
 	}
 }
