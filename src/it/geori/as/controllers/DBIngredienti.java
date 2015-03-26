@@ -165,4 +165,30 @@ public class DBIngredienti extends CacheManager {
 		}
 		DBConnectionPool.releaseConnection(con);
 	}
+	public Ingrediente getIngredienteByID(int id){
+		Ingrediente ingr = (Ingrediente) getItem(id);
+		if(ingr == null){
+			String query = "SELECT * FROM "+TABLE_NAME_INGREDIENTI + " WHERE "+COLUMN_INGREDIENTI_ID+"="+id;
+			try {
+				Connection con = DBConnectionPool.getConnection();
+				PreparedStatement st = con.prepareStatement(query);
+				ResultSet rs = st.executeQuery();
+				if(rs.next()){
+					int idI = rs.getInt(COLUMN_INGREDIENTI_ID);
+					String nome = rs.getString(COLUMN_INGREDIENTI_NOME);
+					double prezzo = rs.getDouble(COLUMN_INGREDIENTI_PREZZO);
+					ingr = new Ingrediente(idI, nome, prezzo);
+					addItemToCache(ingr);
+				}
+				rs.close();
+				st.close();
+				DBConnectionPool.releaseConnection(con);
+			}
+			catch (SQLException e) {
+				e.printStackTrace();
+				return null;
+			}
+		}
+		return ingr;
+	}
 }

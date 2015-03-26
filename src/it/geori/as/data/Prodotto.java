@@ -5,14 +5,13 @@ import it.geori.as.data.interfaces.Identifier;
 import java.util.ArrayList;
 
 public class Prodotto implements Identifier{
-	private Integer idCategoria=null, idMenu, idProdotto;
+	private Integer idCategoria=null, idProdotto;
 	private String nomeProdotto, descrizione;
 	private double prezzo;
 	private ArrayList<Ingrediente> ingredienti;
 	
-	public Prodotto(int c, int m, int p, String n, String d, double pr){
+	public Prodotto(int c, int p, String n, String d, double pr){
 		idCategoria = c;
-		idMenu = m;
 		idProdotto = p;
 		nomeProdotto = n;
 		descrizione = d;
@@ -22,9 +21,6 @@ public class Prodotto implements Identifier{
 	
 	public Integer getIdCategoria() {
 		return idCategoria;
-	}
-	public int getIdMenu() {
-		return idMenu;
 	}
 	public int getIdProdotto() {
 		return idProdotto;

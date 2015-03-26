@@ -11,11 +11,9 @@ public class CacheManager {
 	public CacheManager(){
 		cache = new HashMap<Integer, Identifier>();
 	}
-	
 	public Map<Integer, Identifier> getCache(){
 		return cache;
 	}
-	
 	public void addItemToCache(Identifier i){
 		cache.put(i.getID(), i);
 	}
@@ -27,5 +25,8 @@ public class CacheManager {
 	}
 	public Identifier getItem(int id){
 		return cache.get(id);
+	}
+	protected void clean(){
+		cache.clear();
 	}
 }
