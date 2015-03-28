@@ -77,7 +77,7 @@ public class ServletAuthentication extends HttpServlet {
 				}
 				break;
 			case COMMAND_LOGOUT_GUEST:
-				String orderCode1 = req.getParameter("orderCode");
+				xml = XMLDocumentCreator.operationStatus(doLogoutGuest(req.getCookies()));
 				break;
 		}
 		
@@ -118,5 +118,20 @@ public class ServletAuthentication extends HttpServlet {
 			return AuthenticatedUsers.getInstance().logout(user, session);
 		}
 		return false;
+	}
+	private boolean doLogoutGuest(Cookie[] listCookie){
+		String orderCode = null;
+		for(int i=0;i<listCookie.length;i++){
+			Cookie cookie = listCookie[i];
+			switch(cookie.getName()){
+				case "orderCode":
+					orderCode = cookie.getValue();
+					break;
+			}
+		}
+		if(orderCode!=null){
+			AuthenticatedUsers.getInstance().logoutGuest(orderCode);
+		}
+		return true;
 	}
 }
