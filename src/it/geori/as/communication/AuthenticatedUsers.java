@@ -5,8 +5,11 @@ import it.geori.as.controllers.DBUtenti;
 
 import java.math.BigInteger;
 import java.security.SecureRandom;
+import java.util.AbstractMap;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 
 public class AuthenticatedUsers {
 	private final static int USER_ADMIN = 2, USER_NORMAL = 1, USER_ERROR = 0;
@@ -54,6 +57,9 @@ public class AuthenticatedUsers {
 			return true;
 		}
 	}
+	protected boolean kickUser(String username){
+		return authUsers.remove(username)!=null;
+	}
 	public boolean loginGuest(String orderCode){
 		if(authUsers.get("guest_"+orderCode)!=null){
 			return true;
@@ -78,6 +84,23 @@ public class AuthenticatedUsers {
 			return true;
 		}
 		return false;
+	}
+	public ArrayList<Entry<String,String>> getAuthenticatedUsersList(){
+		ArrayList<Entry<String, String>> list = new ArrayList<>();
+		for(Entry<String,User> u:authUsers.entrySet()){
+			Entry<String,String> entry=new AbstractMap.SimpleEntry<String,String>(u.getValue().getUsername(),
+					u.getValue().getNome().compareToIgnoreCase("guest")==0?"Guest":u.getValue().getAuthcode());
+			list.add(entry);
+		}
+		return list;
+	}
+	public boolean changePassword(String username, String oldPass, String newPass){
+		if(DBUtenti.getInstance().login(username, oldPass)!=null){
+			return DBUtenti.getInstance().modificaPasswordUtente(username, newPass);
+		}
+		else {
+			return false;
+		}
 	}
 }
 class User {

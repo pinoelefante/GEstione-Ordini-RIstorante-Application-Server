@@ -73,7 +73,71 @@ public class DBUtenti {
 			PreparedStatement st = con.prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
 			if(st.executeUpdate()>0){
 				res = true;
+				con.commit();
 			}
+			st.close();
+		} 
+		catch (SQLException e) {
+			e.printStackTrace();
+			try {
+				con.rollback(sp);
+			} 
+			catch (SQLException e1) {
+				e1.printStackTrace();
+			}
+		}
+		DBConnectionPool.releaseConnection(con);
+		return res;
+	}
+	public boolean modificaPasswordUtente(String user, String newPass){
+		String query = "UPDATE "+TABLE_NAME+" SET "+COLUMN_PASSWORD+"=\""+newPass+"\" WHERE "+COLUMN_ID+"="+"\""+user+"\"";
+		Connection con;
+		Savepoint sp;
+		try {
+			con = DBConnectionPool.getConnection();
+			sp = con.setSavepoint();
+		} 
+		catch (SQLException e) {
+			e.printStackTrace();
+			return false;
+		}
+		boolean res = false;
+		try {
+			PreparedStatement st = con.prepareStatement(query);
+			if(st.executeUpdate()>0)
+				res = true;
+			st.close();
+		} 
+		catch (SQLException e) {
+			e.printStackTrace();
+			try {
+				con.rollback(sp);
+			} 
+			catch (SQLException e1) {
+				e1.printStackTrace();
+			}
+		}
+		DBConnectionPool.releaseConnection(con);
+		return res;
+	}
+	public boolean modificaUtente(String username, String newUsername, String newName, String newCognome, int newLevel){
+		String query = "UPDATE "+TABLE_NAME+" SET "+COLUMN_USERNAME+"=\""+newUsername+"\","+COLUMN_NOME+"=\""+newName+"\","
+				+COLUMN_COGNOME+"=\""+newCognome+"\","+COLUMN_LIVELLO+"="+newLevel+" WHERE "+COLUMN_USERNAME+"\""+username+"\"";
+		Connection con;
+		Savepoint sp;
+		try {
+			con = DBConnectionPool.getConnection();
+			sp = con.setSavepoint();
+		}
+		catch (SQLException e) {
+			e.printStackTrace();
+			return false;
+		}
+		boolean res = false;
+		try {
+			PreparedStatement st = con.prepareStatement(query);
+			if(st.executeUpdate()>0)
+				res = true;
 			st.close();
 		} 
 		catch (SQLException e) {

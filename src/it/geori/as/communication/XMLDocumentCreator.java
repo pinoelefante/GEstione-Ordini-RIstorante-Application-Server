@@ -2,10 +2,13 @@ package it.geori.as.communication;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.Map.Entry;
 
 import javax.servlet.http.HttpServletResponse;
 
 import org.jdom.Document;
+import org.jdom.Element;
 import org.jdom.output.Format;
 import org.jdom.output.XMLOutputter;
 
@@ -24,10 +27,42 @@ public class XMLDocumentCreator {
 			e.printStackTrace();
 		}
 	}
-	public static Document operationStatus(boolean s){
-		return null;
+	public static Document operationStatus(boolean s, String message){
+		Element root = new Element("response");
+		Element status = new Element("status");
+		Element m = new Element("message");
+		status.addContent(s+"");
+		m.addContent(message==null?"":message);
+		root.addContent(status);
+		root.addContent(m);
+		Document doc = new Document(root);
+		return doc;
 	}
 	public static Document errorParameters(){
-		return null;
+		return operationStatus(false, "Parametri non presenti o valori non validi");
+	}
+	public static Document listSessions(ArrayList<Entry<String, String>> l){
+		Element root = new Element("response");
+		Element status = new Element("status");
+		Element m = new Element("message");
+		status.addContent(true+"");
+		m.addContent("");
+		root.addContent(status);
+		root.addContent(m);
+		
+		Element listUser = new Element("sessioni");
+		for(Entry<String,String> e : l){
+			Element sessione = new Element("sessione");
+			Element user_sessione = new Element("user");
+			user_sessione.addContent(e.getKey());
+			Element id_sessione = new Element("sessione");
+			id_sessione.addContent(e.getValue());
+			sessione.addContent(user_sessione);
+			sessione.addContent(id_sessione);
+			listUser.addContent(sessione);
+		}
+		root.addContent(listUser);
+		Document doc = new Document(root);
+		return doc;
 	}
 }
