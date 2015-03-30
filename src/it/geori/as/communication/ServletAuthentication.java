@@ -1,5 +1,7 @@
 package it.geori.as.communication;
 
+import it.geori.as.controllers.DBUtenti;
+
 import java.io.IOException;
 import java.util.Map;
 
@@ -18,7 +20,8 @@ public class ServletAuthentication extends HttpServlet {
 		COMMAND_LOGIN_GUEST="login_guest", 
 		COMMAND_LOGOUT="logout",
 		COMMAND_LOGOUT_GUEST="logout_guest", 
-		COMMAND_VERIFICA_LOGIN="isLogged";
+		COMMAND_VERIFICA_LOGIN="isLogged",
+		COMMAND_REGISTRA="signup";
 	
 	@Override
 	protected void doPost(HttpServletRequest req, HttpServletResponse resp)	throws ServletException, IOException {
@@ -79,8 +82,36 @@ public class ServletAuthentication extends HttpServlet {
 			case COMMAND_LOGOUT_GUEST:
 				xml = XMLDocumentCreator.operationStatus(doLogoutGuest(req.getCookies()));
 				break;
+			case COMMAND_REGISTRA:
+				if(!isAdmin(req.getCookies())){
+					xml = XMLDocumentCreator.operationStatus(false);
+					break;
+				}
+				String user = req.getParameter("username");
+				String pass1 = req.getParameter("password");
+				String nome = req.getParameter("nome");
+				String cognome = req.getParameter("cognome");
+				String l = req.getParameter("livello");
+				if(user!=null && pass1!=null && nome!=null && cognome!=null && l!=null){
+					int lev = 0;
+					try {
+						lev = Integer.parseInt(l);
+						if(DBUtenti.getInstance().registraUtente(nome, cognome, user, pass1, lev)){
+							xml = XMLDocumentCreator.operationStatus(true);
+						}
+						else 
+							xml = XMLDocumentCreator.operationStatus(false);
+					}
+					catch(NumberFormatException e){
+						lev = 0;
+						xml = XMLDocumentCreator.errorParameters();
+						break;
+					}
+				}
+				else 
+					xml = XMLDocumentCreator.errorParameters();
+				break;
 		}
-		
 		XMLDocumentCreator.sendResponse(resp, xml);
 	}
 	private boolean verificaCookieLogin(Cookie[] listCookie){
@@ -98,6 +129,25 @@ public class ServletAuthentication extends HttpServlet {
 		}
 		if(user!=null && session!=null){
 			return AuthenticatedUsers.getInstance().isAuthenticated(user, session);
+		}
+		return false;
+	}
+	private boolean isAdmin(Cookie[] listCookie){
+		String user=null, session = null;
+		for(int i=0;i<listCookie.length;i++){
+			Cookie cookie = listCookie[i];
+			switch(cookie.getName()){
+				case "user":
+					user = cookie.getValue();
+					break;
+				case "sessionid":
+					session = cookie.getValue();
+					break;
+			}
+		}
+		if(user!=null && session!=null){
+			if(AuthenticatedUsers.getInstance().isAuthenticated(user, session) && AuthenticatedUsers.getInstance().isAdmin(user))
+				return true;
 		}
 		return false;
 	}

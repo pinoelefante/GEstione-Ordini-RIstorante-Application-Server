@@ -4,6 +4,8 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Savepoint;
+import java.sql.Statement;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -52,5 +54,38 @@ public class DBUtenti {
 		}
 		DBConnectionPool.releaseConnection(con);
 		return ret;
+	}
+	public boolean registraUtente(String nome, String cognome, String username, String password, int livello){
+		String query = "INSERT INTO "+TABLE_NAME+" ("+COLUMN_NOME+","+COLUMN_COGNOME+","+COLUMN_USERNAME+","+COLUMN_PASSWORD+","+COLUMN_LIVELLO+") VALUES ("+
+				"\""+nome+"\",\""+cognome+"\",\""+username+"\",\""+password+"\","+livello+")";
+		Connection con;
+		Savepoint sp;
+		try {
+			con = DBConnectionPool.getConnection();
+			sp = con.setSavepoint();
+		} 
+		catch (SQLException e) {
+			e.printStackTrace();
+			return false;
+		}
+		boolean res = false;
+		try {
+			PreparedStatement st = con.prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
+			if(st.executeUpdate()>0){
+				res = true;
+			}
+			st.close();
+		} 
+		catch (SQLException e) {
+			e.printStackTrace();
+			try {
+				con.rollback(sp);
+			} 
+			catch (SQLException e1) {
+				e1.printStackTrace();
+			}
+		}
+		DBConnectionPool.releaseConnection(con);
+		return res;
 	}
 }

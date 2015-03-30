@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class AuthenticatedUsers {
+	private final static int USER_ADMIN = 2, USER_NORMAL = 1, USER_ERROR = 0;
 	private SecureRandom random = new SecureRandom();
 	
 	private static AuthenticatedUsers instance;
@@ -70,6 +71,13 @@ public class AuthenticatedUsers {
 	public boolean logoutGuest(String orderCode){
 		authUsers.remove("guest_"+orderCode);
 		return true;
+	}
+	public boolean isAdmin(String username){
+		User u = authUsers.get(username);
+		if(u!=null && u.getLivelloAutorizzazione()==USER_ADMIN){
+			return true;
+		}
+		return false;
 	}
 }
 class User {
