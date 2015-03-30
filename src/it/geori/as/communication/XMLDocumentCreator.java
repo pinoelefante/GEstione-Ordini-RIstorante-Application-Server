@@ -13,6 +13,7 @@ import org.jdom.output.Format;
 import org.jdom.output.XMLOutputter;
 
 public class XMLDocumentCreator {
+	
 	public static void sendResponse(HttpServletResponse response, Document doc){
 		XMLOutputter xml_out = new XMLOutputter();
 		xml_out.setFormat(Format.getPrettyFormat());
@@ -27,14 +28,18 @@ public class XMLDocumentCreator {
 			e.printStackTrace();
 		}
 	}
-	public static Document operationStatus(boolean s, String message){
+	private static Element getBooleanElement(boolean b, String message){
 		Element root = new Element("response");
 		Element status = new Element("status");
 		Element m = new Element("message");
-		status.addContent(s+"");
+		status.addContent(b+"");
 		m.addContent(message==null?"":message);
 		root.addContent(status);
 		root.addContent(m);
+		return root;
+	}
+	public static Document operationStatus(boolean s, String message){
+		Element root = getBooleanElement(s, message);
 		Document doc = new Document(root);
 		return doc;
 	}
@@ -42,13 +47,7 @@ public class XMLDocumentCreator {
 		return operationStatus(false, "Parametri non presenti o valori non validi");
 	}
 	public static Document listSessions(ArrayList<Entry<String, String>> l){
-		Element root = new Element("response");
-		Element status = new Element("status");
-		Element m = new Element("message");
-		status.addContent(true+"");
-		m.addContent("");
-		root.addContent(status);
-		root.addContent(m);
+		Element root = getBooleanElement(true, "");
 		
 		Element listUser = new Element("sessioni");
 		for(Entry<String,String> e : l){
