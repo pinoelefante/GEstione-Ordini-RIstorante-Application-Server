@@ -106,6 +106,8 @@ public class ServletIngredienti extends HttpServlet {
 						xml = XMLDocumentCreator.errorParameters();
 					}
 					break;
+				default:
+					xml = XMLDocumentCreator.errorParameters();
 			}
 		}
 		else

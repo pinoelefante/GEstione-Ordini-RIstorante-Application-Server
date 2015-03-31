@@ -14,7 +14,7 @@ import java.util.Map.Entry;
 import javax.servlet.http.Cookie;
 
 public class AuthenticatedUsers {
-	private final static int USER_ADMIN = 2, USER_NORMAL = 1, USER_ERROR = 0;
+	private final static int USER_ADMIN = 2, USER_NORMAL = 1, USER_GUEST = 0;
 	private SecureRandom random = new SecureRandom();
 	
 	private static AuthenticatedUsers instance;
@@ -40,10 +40,11 @@ public class AuthenticatedUsers {
 		if(login!=null){
 			String sessionid = new BigInteger(130, random).toString(32);
 			String nome = login.get("nome");
+			int idU = Integer.parseInt(login.get("id"));
 			Integer livello = Integer.parseInt(login.get("livello"));
 			login.put("sessionid", sessionid);
 			
-			User u = new User(username, sessionid, nome, livello);
+			User u = new User(username, sessionid, nome, livello, idU);
 			authUsers.put(username, u);
 			
 			return login;
@@ -129,19 +130,16 @@ public class AuthenticatedUsers {
 }
 class User {
 	private String username, authcode, appearance, orderCode;
-	private int livelloAutorizzazione;
-	public User(String user, String code, String app, int lv){
+	private int livelloAutorizzazione, id;
+	public User(String user, String code, String app, int lv, int i){
 		username = user;
 		authcode = code;
 		appearance = app;
 		livelloAutorizzazione = lv;
+		id = i;
 	}
 	public User(String orderCode){
-		username="guest_"+orderCode;
-		authcode="";
-		appearance="guest";
-		livelloAutorizzazione=0;
-		this.orderCode = orderCode;
+		this("guest_"+orderCode, "", "guest",0,0);
 	}
 	public String getUsername() {
 		return username;
@@ -157,5 +155,8 @@ class User {
 	}
 	public String getOrderCode(){
 		return orderCode;
+	}
+	public int getID(){
+		return id;
 	}
 }

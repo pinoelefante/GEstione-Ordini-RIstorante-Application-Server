@@ -167,6 +167,8 @@ public class ServletAuthentication extends HttpServlet {
 				else
 					xml = XMLDocumentCreator.operationStatus(false, "Solo gli amministratori possono accedere a questa funzione");
 				break;
+			default:
+				xml = XMLDocumentCreator.errorParameters();
 		}
 		XMLDocumentCreator.sendResponse(resp, xml);
 	}

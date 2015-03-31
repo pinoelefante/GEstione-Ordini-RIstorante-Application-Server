@@ -45,6 +45,7 @@ public class DBUtenti {
 				ret = new HashMap<String, String>();
 				ret.put("nome", rs.getString(COLUMN_NOME)+" "+rs.getString(COLUMN_COGNOME));
 				ret.put("livello", rs.getInt(COLUMN_LIVELLO)+"");
+				ret.put("id", rs.getInt(COLUMN_ID)+"");
 			}
 			rs.close();
 			st.close();
