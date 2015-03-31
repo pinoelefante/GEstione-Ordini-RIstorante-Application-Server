@@ -106,7 +106,6 @@ public class AuthenticatedUsers {
 class User {
 	private String username, authcode, appearance, orderCode;
 	private int livelloAutorizzazione;
-	
 	public User(String user, String code, String app, int lv){
 		username = user;
 		authcode = code;

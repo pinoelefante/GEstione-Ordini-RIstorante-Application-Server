@@ -27,14 +27,7 @@ public class ServletAuthentication extends HttpServlet {
 		COMMAND_CHIUDI_SESSIONE="kick_user",
 		COMMAND_LIST_SESSIONI="list_sessions",
 		COMMAND_CHANGE_PASSWORD="change_password";
-	
-	private final static String 
-		COOKIE_USERNAME="user",
-		COOKIE_NOME="nome",
-		COOKIE_ORDERCODE="orderCode",
-		COOKIE_SESSION_ID="sessionid";
-	
-	
+
 	@Override
 	protected void doPost(HttpServletRequest req, HttpServletResponse resp)	throws ServletException, IOException {
 		Document xml = null;
@@ -57,9 +50,9 @@ public class ServletAuthentication extends HttpServlet {
 				if(username!=null && pass!=null){
 					Map<String,String> login = AuthenticatedUsers.getInstance().login(username, pass);
 					if(login!=null){
-						Cookie cookie_user = new Cookie(COOKIE_USERNAME, username);
-						Cookie cookie_sess = new Cookie(COOKIE_SESSION_ID, login.get("sessionid"));
-						Cookie cookie_nome = new Cookie(COOKIE_NOME, login.get("nome"));
+						Cookie cookie_user = new Cookie(CookieManager.COOKIE_USERNAME, username);
+						Cookie cookie_sess = new Cookie(CookieManager.COOKIE_SESSION_ID, login.get("sessionid"));
+						Cookie cookie_nome = new Cookie(CookieManager.COOKIE_NOME, login.get("nome"));
 						resp.addCookie(cookie_user);
 						resp.addCookie(cookie_sess);
 						resp.addCookie(cookie_nome);
@@ -90,7 +83,7 @@ public class ServletAuthentication extends HttpServlet {
 				if(orderCode != null){
 					boolean login = AuthenticatedUsers.getInstance().loginGuest(orderCode);
 					if(login){
-						Cookie c = new Cookie(COOKIE_ORDERCODE, orderCode);
+						Cookie c = new Cookie(CookieManager.COOKIE_ORDERCODE, orderCode);
 						resp.addCookie(c);
 					}
 					xml = XMLDocumentCreator.operationStatus(login, "");
@@ -151,7 +144,7 @@ public class ServletAuthentication extends HttpServlet {
 				if(verificaCookieLogin(req.getCookies())){
 					String newPass = req.getParameter("newPass");
 					String oldPass = req.getParameter("oldPass");
-					String u1 = getValueFromCookie(req.getCookies(), COOKIE_USERNAME);
+					String u1 = CookieManager.getValueFromCookie(req.getCookies(), CookieManager.COOKIE_USERNAME);
 					if(u1==null)
 						xml = XMLDocumentCreator.errorParameters();
 					else {
@@ -181,8 +174,8 @@ public class ServletAuthentication extends HttpServlet {
 		if(listCookie == null)
 			return false;
 		
-		String user=getValueFromCookie(listCookie, COOKIE_USERNAME);
-		String session=getValueFromCookie(listCookie, COOKIE_SESSION_ID);
+		String user=CookieManager.getValueFromCookie(listCookie, CookieManager.COOKIE_USERNAME);
+		String session=CookieManager.getValueFromCookie(listCookie, CookieManager.COOKIE_SESSION_ID);
 		
 		if(user!=null && session!=null){
 			return AuthenticatedUsers.getInstance().isAuthenticated(user, session);
@@ -193,8 +186,8 @@ public class ServletAuthentication extends HttpServlet {
 		if(listCookie == null)
 			return false;
 		
-		String user=getValueFromCookie(listCookie, COOKIE_USERNAME);
-		String session=getValueFromCookie(listCookie, COOKIE_SESSION_ID);
+		String user=CookieManager.getValueFromCookie(listCookie, CookieManager.COOKIE_USERNAME);
+		String session=CookieManager.getValueFromCookie(listCookie, CookieManager.COOKIE_SESSION_ID);
 		
 		if(user!=null && session!=null){
 			if(AuthenticatedUsers.getInstance().isAuthenticated(user, session) && AuthenticatedUsers.getInstance().isAdmin(user))
@@ -206,8 +199,8 @@ public class ServletAuthentication extends HttpServlet {
 		if(listCookie == null)
 			return false;
 		
-		String user=getValueFromCookie(listCookie, COOKIE_USERNAME);
-		String session=getValueFromCookie(listCookie, COOKIE_SESSION_ID);
+		String user=CookieManager.getValueFromCookie(listCookie, CookieManager.COOKIE_USERNAME);
+		String session=CookieManager.getValueFromCookie(listCookie, CookieManager.COOKIE_SESSION_ID);
 		
 		if(user!=null && session!=null){
 			return AuthenticatedUsers.getInstance().logout(user, session);
@@ -218,22 +211,11 @@ public class ServletAuthentication extends HttpServlet {
 		if(listCookie == null)
 			return false;
 		
-		String orderCode = getValueFromCookie(listCookie, COOKIE_ORDERCODE);
+		String orderCode = CookieManager.getValueFromCookie(listCookie, CookieManager.COOKIE_ORDERCODE);
 		if(orderCode!=null){
 			AuthenticatedUsers.getInstance().logoutGuest(orderCode);
 		}
 		return true;
-	}
-	private String getValueFromCookie(Cookie[] listCookie, String key){
-		if(listCookie==null)
-			return null;
-		for(int i=0;i<listCookie.length;i++){
-			Cookie cookie = listCookie[i];
-			if(cookie.getName().compareTo(key)==0){
-				return cookie.getValue();
-			}
-		}
-		return null;
 	}
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
