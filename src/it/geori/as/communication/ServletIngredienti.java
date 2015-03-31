@@ -4,6 +4,7 @@ import it.geori.as.controllers.DBIngredienti;
 import it.geori.as.data.Ingrediente;
 
 import java.io.IOException;
+import java.util.ArrayList;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -28,7 +29,7 @@ public class ServletIngredienti extends HttpServlet {
 		if(action != null){
 			switch(action){
 				case COMMAND_INSERISCI_INGREDIENTE: 
-					if(!CookieManager.isAdmin(req.getCookies())){
+					if(!AuthenticatedUsers.getInstance().isAdmin(req.getCookies())){
 						xml = XMLDocumentCreator.operationStatus(false, "Operazione consentita solo agli amministratori");
 						break;
 					}
@@ -54,20 +55,39 @@ public class ServletIngredienti extends HttpServlet {
 						xml = XMLDocumentCreator.errorParameters();
 					break;
 				case COMMAND_LIST_INGREDIENTE:
-					if(!CookieManager.isAdmin(req.getCookies())){
-						xml = XMLDocumentCreator.operationStatus(false, "Operazione consentita solo agli amministratori");
-						break;
-					}
+					ArrayList<Ingrediente> list = DBIngredienti.getInstance().getList();
+					xml = XMLDocumentCreator.listIngredienti(list);
 					break;
 				case COMMAND_MODIFICA_INGREDIENTE:
-					if(!CookieManager.isAdmin(req.getCookies())){
+					if(!AuthenticatedUsers.getInstance().isAdmin(req.getCookies())){
 						xml = XMLDocumentCreator.operationStatus(false, "Operazione consentita solo agli amministratori");
 						break;
 					}
+					String idMod = req.getParameter("id");
+					String nomeIngrMod = req.getParameter("nome");
+					String prezzoMod = req.getParameter("prezzo");
+					if(nomeIngrMod!=null && nomeIngrMod.length()>0 && prezzoMod!=null){
+						try {
+							int id = Integer.parseInt(idMod);
+							double prezzo = Double.parseDouble(prezzoMod);
+							Ingrediente ingr = new Ingrediente(id, nomeIngrMod, prezzo);
+							boolean res = DBIngredienti.getInstance().updateIngrediente(ingr);
+							if(res){
+								xml = XMLDocumentCreator.operationStatus(true, "");
+							}
+							else
+								xml = XMLDocumentCreator.operationStatus(false, "Si è verificato un errore durante la modifica");	
+						}
+						catch(NumberFormatException e){
+							xml = XMLDocumentCreator.errorParameters();	
+						}
+					}
+					else
+						xml = XMLDocumentCreator.errorParameters();
 					
 					break;
 				case COMMAND_RIMUOVI_INGREDIENTE:
-					if(!CookieManager.isAdmin(req.getCookies())){
+					if(!AuthenticatedUsers.getInstance().isAdmin(req.getCookies())){
 						xml = XMLDocumentCreator.operationStatus(false, "Operazione consentita solo agli amministratori");
 						break;
 					}

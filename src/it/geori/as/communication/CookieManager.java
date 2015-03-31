@@ -20,17 +20,4 @@ public class CookieManager {
 		}
 		return null;
 	}
-	static boolean isAdmin(Cookie[] listCookie){
-		if(listCookie == null)
-			return false;
-		
-		String user=getValueFromCookie(listCookie, COOKIE_USERNAME);
-		String session=getValueFromCookie(listCookie, COOKIE_SESSION_ID);
-		
-		if(user!=null && session!=null){
-			if(AuthenticatedUsers.getInstance().isAuthenticated(user, session) && AuthenticatedUsers.getInstance().isAdmin(user))
-				return true;
-		}
-		return false;
-	}
 }

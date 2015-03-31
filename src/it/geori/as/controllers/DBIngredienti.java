@@ -1,6 +1,7 @@
 package it.geori.as.controllers;
 
 import it.geori.as.data.Ingrediente;
+import it.geori.as.data.interfaces.Identifier;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -8,6 +9,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Savepoint;
 import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.Map.Entry;
 
 public class DBIngredienti extends CacheManager {
 	private static DBIngredienti instance;
@@ -190,5 +193,26 @@ public class DBIngredienti extends CacheManager {
 			}
 		}
 		return ingr;
+	}
+	public ArrayList<Ingrediente> getList(){
+		ArrayList<Ingrediente> list = new ArrayList<Ingrediente>();
+		for(Entry<Integer, Identifier> i : getCache().entrySet()){
+			Ingrediente ing = (Ingrediente)(i.getValue());
+			if(list.isEmpty())
+				list.add(ing);
+			else {
+				boolean insOK = false;
+				for(int j=0;j<list.size();j++){
+					if(ing.getNome().compareToIgnoreCase(list.get(j).getNome())<=0){
+						list.add(j, ing);
+						insOK = true;
+						break;
+					}
+				}
+				if(!insOK)
+					list.add(ing);
+			}
+		}
+		return list;
 	}
 }

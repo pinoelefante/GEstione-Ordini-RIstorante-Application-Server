@@ -11,6 +11,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import javax.servlet.http.Cookie;
+
 public class AuthenticatedUsers {
 	private final static int USER_ADMIN = 2, USER_NORMAL = 1, USER_ERROR = 0;
 	private SecureRandom random = new SecureRandom();
@@ -101,6 +103,28 @@ public class AuthenticatedUsers {
 		else {
 			return false;
 		}
+	}
+	public boolean isAdmin(Cookie[] listCookie){
+		if(listCookie == null)
+			return false;
+		
+		String user=CookieManager.getValueFromCookie(listCookie, CookieManager.COOKIE_USERNAME);
+		String session=CookieManager.getValueFromCookie(listCookie, CookieManager.COOKIE_SESSION_ID);
+		
+		if(user!=null && session!=null){
+			if(isAuthenticated(user, session) && isAdmin(user))
+				return true;
+		}
+		return false;
+	}
+	public boolean isAuthenticated(Cookie[] listCookie){
+		if(listCookie == null)
+			return false;
+		
+		String user=CookieManager.getValueFromCookie(listCookie, CookieManager.COOKIE_USERNAME);
+		String session=CookieManager.getValueFromCookie(listCookie, CookieManager.COOKIE_SESSION_ID);
+		
+		return isAuthenticated(user, session);
 	}
 }
 class User {

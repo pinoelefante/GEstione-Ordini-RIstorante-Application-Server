@@ -1,5 +1,7 @@
 package it.geori.as.communication;
 
+import it.geori.as.data.Ingrediente;
+
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
@@ -61,6 +63,26 @@ public class XMLDocumentCreator {
 			listUser.addContent(sessione);
 		}
 		root.addContent(listUser);
+		Document doc = new Document(root);
+		return doc;
+	}
+	public static Document listIngredienti(ArrayList<Ingrediente> l){
+		Element root = getBooleanElement(true, "");
+		Element main_ingredienti = new Element("ingredienti");
+		for(Ingrediente i : l){
+			Element ingr = new Element("ingrediente");
+			Element nomeIngr = new Element("nome");
+			Element prezzoIngr = new Element("prezzo");
+			Element idIngr = new Element("id");
+			nomeIngr.addContent(i.getNome());
+			prezzoIngr.addContent(i.getPrezzo()+"");
+			idIngr.addContent(i.getId()+"");
+			ingr.addContent(idIngr);
+			ingr.addContent(nomeIngr);
+			ingr.addContent(prezzoIngr);
+			main_ingredienti.addContent(ingr);
+		}
+		root.addContent(main_ingredienti);
 		Document doc = new Document(root);
 		return doc;
 	}
