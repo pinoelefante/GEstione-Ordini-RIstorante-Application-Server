@@ -30,10 +30,10 @@ public class AuthenticatedUsers {
 	}
 	public boolean isAuthenticated(String user, String authcode){
 		User u = authUsers.get(user);
-		if(u==null || u.getAuthcode().compareTo(authcode)!=0)
-			return false;
-		else
+		if(u!=null && u.getAuthcode().compareTo(authcode)==0)
 			return true;
+		else
+			return false;
 	}
 	public Map<String,String> login(String username, String pass){
 		Map<String, String> login = DBUtenti.getInstance().login(username, pass); 

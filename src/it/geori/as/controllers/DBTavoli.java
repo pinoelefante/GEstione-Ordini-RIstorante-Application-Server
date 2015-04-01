@@ -1,6 +1,7 @@
 package it.geori.as.controllers;
 
 import it.geori.as.data.Tavolo;
+import it.geori.as.data.interfaces.Identifier;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -8,6 +9,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Savepoint;
 import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.Map.Entry;
 
 public class DBTavoli extends CacheManager {
 	private static DBTavoli instance;
@@ -126,7 +129,7 @@ public class DBTavoli extends CacheManager {
 	}
 	
 	public boolean updateTable(Tavolo t){
-		String query = "UPDATE "+TABLE_NAME+" SET "+COLUMN_NOMETAVOLO+"\""+t.getNomeTavolo()+"\", "+COLUMN_COPERTO+"="+t.getCostoCoperto()+" WHERE "+COLUMN_ID+"="+t.getIDTavolo();
+		String query = "UPDATE "+TABLE_NAME+" SET "+COLUMN_NOMETAVOLO+"=\""+t.getNomeTavolo()+"\", "+COLUMN_COPERTO+"="+t.getCostoCoperto()+" WHERE "+COLUMN_ID+"="+t.getIDTavolo();
 		Connection con;
 		try {
 			con = DBConnectionPool.getConnection();
@@ -149,5 +152,26 @@ public class DBTavoli extends CacheManager {
 		}
 		return ret;
 	}
-	
+	public ArrayList<Tavolo> getList(){
+		ArrayList<Tavolo> list = new ArrayList<Tavolo>();
+		for(Entry<Integer, Identifier> e : getCache().entrySet()){
+			Tavolo t = (Tavolo) e.getValue();
+			if(list.isEmpty()){
+				list.add(t);
+			}
+			else {
+				boolean insOK = false;
+				for(int i=0;i<list.size();i++){
+					if(t.getID()<list.get(i).getID()){
+						list.add(i, t);
+						insOK = true;
+						break;
+					}
+				}
+				if(!insOK)
+					list.add(t);
+			}
+		}
+		return list;
+	}
 }

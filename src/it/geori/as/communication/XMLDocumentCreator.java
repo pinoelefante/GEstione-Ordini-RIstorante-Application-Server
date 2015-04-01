@@ -1,6 +1,7 @@
 package it.geori.as.communication;
 
 import it.geori.as.data.Ingrediente;
+import it.geori.as.data.Tavolo;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -17,6 +18,8 @@ import org.jdom.output.XMLOutputter;
 public class XMLDocumentCreator {
 	
 	public static void sendResponse(HttpServletResponse response, Document doc){
+		if(doc == null)
+			doc = errorParameters();
 		XMLOutputter xml_out = new XMLOutputter();
 		xml_out.setFormat(Format.getPrettyFormat());
 		response.setContentType("text/xml");
@@ -83,6 +86,26 @@ public class XMLDocumentCreator {
 			main_ingredienti.addContent(ingr);
 		}
 		root.addContent(main_ingredienti);
+		Document doc = new Document(root);
+		return doc;
+	}
+	public static Document listTavoli(ArrayList<Tavolo> l) {
+		Element root = getBooleanElement(true, "");
+		Element main_tavoli = new Element("tavoli");
+		for(Tavolo t : l){
+			Element tavolo = new Element("tavolo");
+			Element idTavolo = new Element("id");
+			Element nomeTavolo = new Element("nome");
+			Element prezzoCoperto = new Element("coperto");
+			idTavolo.addContent(t.getID()+"");
+			nomeTavolo.addContent(t.getNomeTavolo());
+			prezzoCoperto.addContent(t.getCostoCoperto()+"");
+			tavolo.addContent(idTavolo);
+			tavolo.addContent(nomeTavolo);
+			tavolo.addContent(prezzoCoperto);
+			main_tavoli.addContent(tavolo);
+		}
+		root.addContent(main_tavoli);
 		Document doc = new Document(root);
 		return doc;
 	}

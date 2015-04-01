@@ -14,8 +14,8 @@ public class DBOrdini extends CacheManager {
 		//TODO
 		return false;
 	}
-	private final static String setNormalized = "abc0def1ghi2jk3lm4no5pqr6st7u8vwx9yz";
 	
+	private final static String setNormalized = "abc0def1ghi2jk3lm4no5pqr6st7u8vwx9yz";
 	private static String getRandomString(String set) {
 		String indici = (System.currentTimeMillis()+"").substring(4); //8 indici
 		StringBuilder sb = new StringBuilder();
