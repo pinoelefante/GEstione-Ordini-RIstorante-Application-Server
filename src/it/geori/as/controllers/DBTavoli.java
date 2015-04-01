@@ -144,6 +144,7 @@ public class DBTavoli extends CacheManager {
 			if(st.executeUpdate(query)>0){
 				updateItemToCache(t);
 				ret = true;
+				con.commit();
 			}
 			st.close();
 		} 
