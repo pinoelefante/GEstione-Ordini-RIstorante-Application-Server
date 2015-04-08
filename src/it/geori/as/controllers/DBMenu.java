@@ -1,6 +1,8 @@
 package it.geori.as.controllers;
 
 import it.geori.as.data.Menu;
+import it.geori.as.data.Prodotto;
+import it.geori.as.data.interfaces.Identifier;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -9,7 +11,9 @@ import java.sql.SQLException;
 import java.sql.Savepoint;
 import java.sql.Statement;
 import java.text.DateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.Map.Entry;
 
 public class DBMenu extends CacheManager {
 	private static DBMenu instance;
@@ -161,5 +165,68 @@ public class DBMenu extends CacheManager {
 		catch (SQLException e) {
 			e.printStackTrace();
 		}
+	}
+	public Menu getMenuByID(int id){
+		Menu m = (Menu) getItem(id);
+		if(m==null){
+			String query = "SELECT * FROM "+TABLE_NAME + " WHERE "+COLUMN_ID+"="+id;
+			try {
+				Connection con = DBConnectionPool.getConnection();
+				PreparedStatement st = con.prepareStatement(query);
+				ResultSet rs = st.executeQuery();
+				if(rs.next()){
+					int idI = rs.getInt(COLUMN_ID);
+					String nome = rs.getString(COLUMN_NOME);
+					String data = rs.getString(COLUMN_DATA);
+					m = new Menu(idI, nome, data);
+					addItemToCache(m);
+				}
+				rs.close();
+				st.close();
+				DBConnectionPool.releaseConnection(con);
+			}
+			catch (SQLException e) {
+				e.printStackTrace();
+				return null;
+			}
+		}
+		return m;
+	}
+	public ArrayList<Menu> getList(){
+		ArrayList<Menu> list = new ArrayList<Menu>();
+		for(Entry<Integer, Identifier> i : getCache().entrySet()){
+			Menu m = (Menu)(i.getValue());
+			if(list.isEmpty())
+				list.add(m);
+			else {
+				boolean insOK = false;
+				for(int j=0;j<list.size();j++){
+					if(m.getVersioneMenu()>list.get(j).getVersioneMenu()){
+						list.add(j, m);
+						insOK = true;
+						break;
+					}
+				}
+				if(!insOK)
+					list.add(m);
+			}
+		}
+		return list;
+	}
+	public boolean cloneMenuFrom(Menu oldMenu){
+		//TODO
+		return false;
+	}
+	public boolean addItemToMenu(Menu m, Prodotto p){
+		//TODO
+		return false;
+	}
+	public boolean removeItemFromMenu(Menu m, Prodotto p){
+		//TODO
+		return false;
+	}
+	protected ArrayList<Prodotto> getListProdottiMenu(int id){
+		//TODO
+		return null;
 	}
 }

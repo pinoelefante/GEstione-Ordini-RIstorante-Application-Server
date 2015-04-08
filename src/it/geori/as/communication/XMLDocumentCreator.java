@@ -1,6 +1,7 @@
 package it.geori.as.communication;
 
 import it.geori.as.data.Ingrediente;
+import it.geori.as.data.Menu;
 import it.geori.as.data.Tavolo;
 
 import java.io.IOException;
@@ -106,6 +107,26 @@ public class XMLDocumentCreator {
 			main_tavoli.addContent(tavolo);
 		}
 		root.addContent(main_tavoli);
+		Document doc = new Document(root);
+		return doc;
+	}
+	public static Document listMenu(ArrayList<Menu> l) {
+		Element root = getBooleanElement(true, "");
+		Element main_menu = new Element("menus");
+		for(Menu m : l){
+			Element menu = new Element("menu");
+			Element idMenu = new Element("id");
+			Element nomeMenu = new Element("nome");
+			Element dataMenu = new Element("data");
+			idMenu.addContent(m.getID()+"");
+			nomeMenu.addContent(m.getNomeMenu());
+			dataMenu.addContent(m.getDataCreazione());
+			menu.addContent(idMenu);
+			menu.addContent(nomeMenu);
+			menu.addContent(dataMenu);
+			main_menu.addContent(menu);
+		}
+		root.addContent(main_menu);
 		Document doc = new Document(root);
 		return doc;
 	}
