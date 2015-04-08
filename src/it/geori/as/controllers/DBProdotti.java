@@ -2,6 +2,7 @@ package it.geori.as.controllers;
 
 import it.geori.as.data.Ingrediente;
 import it.geori.as.data.Prodotto;
+import it.geori.as.data.ProdottoCategoria;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -10,6 +11,8 @@ import java.sql.SQLException;
 import java.sql.Savepoint;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 public class DBProdotti extends CacheManager {
 	private static DBProdotti instance;
@@ -32,6 +35,10 @@ public class DBProdotti extends CacheManager {
 	private final static String TABLE_NAME_PRODOTTI_DETT = "prodotti_dettagli",
 			COLUMN_PRODOTTO_DETT_PRODOTTO="id_prodotto",
 			COLUMN_PRODOTTO_DETT_INGREDIENTE="id_ingrediente";
+	
+	private final static String TABLE_NAME_CATEGORIE = "prodotti_categorie",
+			COLUMN_CATEGORIE_ID="id_categoria",
+			COLUMN_CATEGORIE_NOME="nome_categoria";
 	
 	public boolean addProdotto(Prodotto p){
 		String query = "INSERT INTO "+TABLE_NAME_PRODOTTI+" ("+COLUMN_PRODOTTO_CATEGORIA+","
@@ -269,5 +276,47 @@ public class DBProdotti extends CacheManager {
 			e.printStackTrace();
 			return false;
 		}
+	}
+	private Map<Integer, ProdottoCategoria> cacheCategorie = new HashMap<>();
+	public ProdottoCategoria getProdottoCategoria(int id){
+		//TODO 
+		return null;
+	}
+	public boolean addProdottoCategoria(ProdottoCategoria cat){
+		//TODO 
+		return false;
+	}
+	public boolean removeProdottoCategoria(int id){
+		//TODO
+		String query = "DELETE FROM "+TABLE_NAME_CATEGORIE+" WHERE "+COLUMN_CATEGORIE_ID+"="+id;
+		Connection con;
+		Savepoint sp;
+		try {
+			con = DBConnectionPool.getConnection();
+			sp = con.setSavepoint();
+		} 
+		catch (SQLException e) {
+			e.printStackTrace();
+			return false;
+		}
+		boolean res = false;
+		try {
+			PreparedStatement st = con.prepareStatement(query);
+			if(st.executeUpdate()>0){
+				con.commit();
+				res = true;
+				cacheCategorie.remove(id);
+			}
+		} 
+		catch (SQLException e) {
+			e.printStackTrace();
+			try {
+				con.rollback(sp);
+			} 
+			catch (SQLException e1) {
+				e1.printStackTrace();
+			}
+		}
+		return res;
 	}
 }

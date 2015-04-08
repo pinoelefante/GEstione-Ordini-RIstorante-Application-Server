@@ -2,6 +2,7 @@ package it.geori.as.controllers;
 
 import it.geori.as.data.Menu;
 import it.geori.as.data.Prodotto;
+import it.geori.as.data.ProdottoCategoria;
 import it.geori.as.data.interfaces.Identifier;
 
 import java.sql.Connection;
@@ -13,6 +14,7 @@ import java.sql.Statement;
 import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Map;
 import java.util.Map.Entry;
 
 public class DBMenu extends CacheManager {
@@ -28,6 +30,10 @@ public class DBMenu extends CacheManager {
 			COLUMN_ID="versione_menu", 
 			COLUMN_NOME="nome_menu", 
 			COLUMN_DATA="data_creazione";
+	
+	private final static String TABLE_NAME_DETTAGLI="menu_dettagli", 
+			COLUMN_PRODOTTO_DETTAGLI="id_prodotto", 
+			COLUMN_MENU_DETTAGLI="id_menu";
 	
 	private DBMenu(){
 		super();
@@ -213,20 +219,146 @@ public class DBMenu extends CacheManager {
 		}
 		return list;
 	}
-	public boolean cloneMenuFrom(Menu oldMenu){
-		//TODO
+	public boolean cloneMenuFrom(int oldMenu, String nome){
+		Menu newMenu = new Menu(0, nome, "");
+		if(addMenu(newMenu)){
+			Connection con = null;
+			Savepoint sp = null;
+			try {
+				con = DBConnectionPool.getConnection();
+				sp = con.setSavepoint();
+				ArrayList<Integer> prodottiOld = getListProdottiFromDB(oldMenu);
+				for(int i=0;i<prodottiOld.size();i++){
+					if(!addItemToMenu(con, newMenu.getID(), prodottiOld.get(i))){
+						con.rollback(sp);
+						removeMenu(newMenu.getID());
+						return false;
+					}
+				}
+			} 
+			catch (SQLException e) {
+				e.printStackTrace();
+				try {
+					con.rollback(sp);
+				} 
+				catch (SQLException e1) {
+					e1.printStackTrace();
+				}
+				removeMenu(newMenu.getID());
+			}
+			DBConnectionPool.releaseConnection(con);
+		}
 		return false;
 	}
-	public boolean addItemToMenu(Menu m, Prodotto p){
-		//TODO
+	protected boolean addItemToMenu(Connection con, int menu, int prod){
+		Prodotto p = DBProdotti.getInstance().getProdottoByID(prod);
+		Menu m = (Menu) getItem(menu);
+		if(p!=null){
+			String query = "INSERT INTO "+TABLE_NAME_DETTAGLI+" ("+COLUMN_MENU_DETTAGLI+","+COLUMN_PRODOTTO_DETTAGLI+") VALUES ("+menu+","+prod+")";
+			try {
+				PreparedStatement st = con.prepareStatement(query);
+				boolean res = st.executeUpdate()>0;
+				if(res)
+					m.addItemToMenu(p);
+				st.close();
+				return res;
+			} 
+			catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
 		return false;
 	}
-	public boolean removeItemFromMenu(Menu m, Prodotto p){
-		//TODO
-		return false;
+	public boolean addItemToMenu(int menu, int prod){
+		Connection con;
+		Savepoint sp;
+		try {
+			con = DBConnectionPool.getConnection();
+			sp = con.setSavepoint();
+		} 
+		catch (SQLException e) {
+			e.printStackTrace();
+			return false;
+		}
+		
+		boolean res = addItemToMenu(menu, prod);
+		if(res){
+			try {
+				con.commit();
+			} 
+			catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
+		else {
+			try {
+				con.rollback(sp);
+			} 
+			catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
+		DBConnectionPool.releaseConnection(con);
+		return res;
 	}
-	protected ArrayList<Prodotto> getListProdottiMenu(int id){
-		//TODO
+	public boolean removeItemFromMenu(int menu, int prod){
+		String query = "DELETE FROM "+TABLE_NAME_DETTAGLI+" WHERE "+COLUMN_MENU_DETTAGLI+"="+menu+" AND "+COLUMN_PRODOTTO_DETTAGLI+"="+prod;
+		Connection con;
+		Savepoint sp;
+		Menu m = getMenuByID(menu);
+		if(m==null)
+			return false;
+		try {
+			con = DBConnectionPool.getConnection();
+			sp = con.setSavepoint();
+		} 
+		catch (SQLException e) {
+			e.printStackTrace();
+			return false;
+		}
+		boolean res = false;
+		try {
+			PreparedStatement st = con.prepareStatement(query);
+			if(st.executeUpdate()>0){
+				con.commit();
+				res = true;
+				m.removeItemFromMenu(prod);
+			}
+			st.close();
+		} 
+		catch (SQLException e) {
+			e.printStackTrace();
+			try {
+				con.rollback(sp);
+			} 
+			catch (SQLException e1) {
+				e1.printStackTrace();
+			}
+		}
+		DBConnectionPool.releaseConnection(con);
+		return res;
+	}
+	private ArrayList<Integer> getListProdottiFromDB(int menu){
+		ArrayList<Integer> idProdotti = new ArrayList<Integer>();
+		String query = "SELECT * FROM "+TABLE_NAME_DETTAGLI+" WHERE "+COLUMN_MENU_DETTAGLI+"="+menu;
+		Connection con = null;
+		try {
+			con = DBConnectionPool.getConnection();
+			PreparedStatement st = con.prepareStatement(query);
+			ResultSet rs = st.executeQuery();
+			while(rs.next()){
+				int idProd = rs.getInt(COLUMN_PRODOTTO_DETTAGLI);
+				idProdotti.add(idProd);
+			}
+		} 
+		catch (SQLException e) {
+			e.printStackTrace();
+		}
+		DBConnectionPool.releaseConnection(con);
+		return idProdotti;
+	}
+	public Map<ProdottoCategoria, ArrayList<Prodotto>> getListProdottiMenu(int menu){
+		
 		return null;
 	}
 }

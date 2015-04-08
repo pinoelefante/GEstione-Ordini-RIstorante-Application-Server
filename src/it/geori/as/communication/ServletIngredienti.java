@@ -30,7 +30,7 @@ public class ServletIngredienti extends HttpServlet {
 			switch(action){
 				case COMMAND_INSERISCI_INGREDIENTE: 
 					if(!AuthenticatedUsers.getInstance().isAdmin(req.getCookies())){
-						xml = XMLDocumentCreator.operationStatus(false, "Operazione consentita solo agli amministratori");
+						xml = XMLDocumentCreator.operationStatus(false, Localization.MESSAGGIO_SOLO_ADMIN);
 						break;
 					}
 					String nomeIngr = req.getParameter("nome_ingrediente");
@@ -39,20 +39,14 @@ public class ServletIngredienti extends HttpServlet {
 						double prezzo = 0;
 						try {
 							prezzo = Double.parseDouble(prezzoIngr);
+							Ingrediente ingr = new Ingrediente(0, nomeIngr, prezzo);
+							boolean res = DBIngredienti.getInstance().addIngrediente(ingr);
+							xml = XMLDocumentCreator.operationStatus(res, res?"":"");
 						}
 						catch(Exception e){
-							prezzo = 0;
+							xml = XMLDocumentCreator.errorParameters();
 						}
-						Ingrediente ingr = new Ingrediente(0, nomeIngr, prezzo);
-						boolean ins = DBIngredienti.getInstance().addIngrediente(ingr);
-						if(ins){
-							xml = XMLDocumentCreator.operationStatus(true, "");
-						}
-						else
-							xml = XMLDocumentCreator.operationStatus(false, "");
 					}
-					else
-						xml = XMLDocumentCreator.errorParameters();
 					break;
 				case COMMAND_LIST_INGREDIENTE:
 					ArrayList<Ingrediente> list = DBIngredienti.getInstance().getList();
@@ -60,7 +54,7 @@ public class ServletIngredienti extends HttpServlet {
 					break;
 				case COMMAND_MODIFICA_INGREDIENTE:
 					if(!AuthenticatedUsers.getInstance().isAdmin(req.getCookies())){
-						xml = XMLDocumentCreator.operationStatus(false, "Operazione consentita solo agli amministratori");
+						xml = XMLDocumentCreator.operationStatus(false, Localization.MESSAGGIO_SOLO_ADMIN);
 						break;
 					}
 					String idMod = req.getParameter("id");
@@ -72,38 +66,24 @@ public class ServletIngredienti extends HttpServlet {
 							double prezzo = Double.parseDouble(prezzoMod);
 							Ingrediente ingr = new Ingrediente(id, nomeIngrMod, prezzo);
 							boolean res = DBIngredienti.getInstance().updateIngrediente(ingr);
-							if(res){
-								xml = XMLDocumentCreator.operationStatus(true, "");
-							}
-							else
-								xml = XMLDocumentCreator.operationStatus(false, "Si è verificato un errore durante la modifica");	
+							xml = XMLDocumentCreator.operationStatus(res,res?"":Localization.MESSAGGIO_ERRORE_UPDATE);
 						}
 						catch(NumberFormatException e){
 							xml = XMLDocumentCreator.errorParameters();	
 						}
 					}
-					else
-						xml = XMLDocumentCreator.errorParameters();
-					
 					break;
 				case COMMAND_RIMUOVI_INGREDIENTE:
 					if(!AuthenticatedUsers.getInstance().isAdmin(req.getCookies())){
-						xml = XMLDocumentCreator.operationStatus(false, "Operazione consentita solo agli amministratori");
+						xml = XMLDocumentCreator.operationStatus(false, Localization.MESSAGGIO_SOLO_ADMIN);
 						break;
 					}
 					String id_ingr_to_del = req.getParameter("id");
 					if(id_ingr_to_del!=null){
 						int id_ingr = Integer.parseInt(id_ingr_to_del);
 						boolean res = DBIngredienti.getInstance().removeIngrediente(id_ingr);
-						if(res){
-							xml = XMLDocumentCreator.operationStatus(true, "");
-						}
-						else {
-							xml = XMLDocumentCreator.operationStatus(false, "Si è verificato un errore durante l'eliminazione");
-						}
-					}
-					else {
-						xml = XMLDocumentCreator.errorParameters();
+						xml = XMLDocumentCreator.operationStatus(res,res?"":Localization.MESSAGGIO_ERRORE_DELETE);
+						
 					}
 					break;
 				default:

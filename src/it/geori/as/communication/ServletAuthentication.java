@@ -41,8 +41,8 @@ public class ServletAuthentication extends HttpServlet {
 		
 		switch(action){
 			case COMMAND_LOGIN:
-				if(verificaCookieLogin(req.getCookies())){
-					xml = XMLDocumentCreator.operationStatus(false, "Sei già loggato");
+				if(AuthenticatedUsers.getInstance().isAuthenticated(req.getCookies())){
+					xml = XMLDocumentCreator.operationStatus(false, Localization.MESSAGGIO_ERRORE_GIA_LOGGATO);
 					break;
 				}
 				String username = req.getParameter("username");
@@ -56,14 +56,8 @@ public class ServletAuthentication extends HttpServlet {
 						resp.addCookie(cookie_user);
 						resp.addCookie(cookie_sess);
 						resp.addCookie(cookie_nome);
-						xml = XMLDocumentCreator.operationStatus(true, "");
 					}
-					else {
-						xml = XMLDocumentCreator.operationStatus(false, "");
-					}
-				}
-				else {
-					xml = XMLDocumentCreator.errorParameters();
+					xml = XMLDocumentCreator.operationStatus(login!=null, "");
 				}
 				break;
 			case COMMAND_LOGOUT:
@@ -71,12 +65,12 @@ public class ServletAuthentication extends HttpServlet {
 				xml = XMLDocumentCreator.operationStatus(logout, "");
 				break;
 			case COMMAND_VERIFICA_LOGIN:
-				boolean r = verificaCookieLogin(req.getCookies());
+				boolean r = AuthenticatedUsers.getInstance().isAuthenticated(req.getCookies());
 				xml = XMLDocumentCreator.operationStatus(r, "");
 				break;
 			case COMMAND_LOGIN_GUEST:
-				if(verificaCookieLogin(req.getCookies())){
-					xml = XMLDocumentCreator.operationStatus(false, "Sei già loggato");
+				if(AuthenticatedUsers.getInstance().isAuthenticated(req.getCookies())){
+					xml = XMLDocumentCreator.operationStatus(false, Localization.MESSAGGIO_ERRORE_GIA_LOGGATO);
 					break;
 				}
 				String orderCode = req.getParameter("orderCode");
@@ -88,16 +82,13 @@ public class ServletAuthentication extends HttpServlet {
 					}
 					xml = XMLDocumentCreator.operationStatus(login, "");
 				}
-				else {
-					xml = XMLDocumentCreator.errorParameters();
-				}
 				break;
 			case COMMAND_LOGOUT_GUEST:
 				xml = XMLDocumentCreator.operationStatus(doLogoutGuest(req.getCookies()), "");
 				break;
 			case COMMAND_REGISTRA:
-				if(!isAdmin(req.getCookies())){
-					xml = XMLDocumentCreator.operationStatus(false, "");
+				if(!AuthenticatedUsers.getInstance().isAdmin(req.getCookies())){
+					xml = XMLDocumentCreator.operationStatus(false, Localization.MESSAGGIO_ERRORE_NON_SEI_ADMIN);
 					break;
 				}
 				String user = req.getParameter("username");
@@ -109,93 +100,53 @@ public class ServletAuthentication extends HttpServlet {
 					int lev = 0;
 					try {
 						lev = Integer.parseInt(l);
-						if(DBUtenti.getInstance().registraUtente(nome, cognome, user, pass1, lev)){
-							xml = XMLDocumentCreator.operationStatus(true, "");
-						}
-						else 
-							xml = XMLDocumentCreator.operationStatus(false, "");
+						boolean res = DBUtenti.getInstance().registraUtente(nome, cognome, user, pass1, lev);
+						xml = XMLDocumentCreator.operationStatus(res, "");
 					}
 					catch(NumberFormatException e){
-						lev = 0;
 						xml = XMLDocumentCreator.errorParameters();
 						break;
 					}
 				}
-				else 
-					xml = XMLDocumentCreator.errorParameters();
 				break;
 			case COMMAND_CHIUDI_SESSIONE:
-				if(!isAdmin(req.getCookies())){
-					xml = XMLDocumentCreator.operationStatus(false, "Non sei loggato come amministratore");
+				if(!AuthenticatedUsers.getInstance().isAdmin(req.getCookies())){
+					xml = XMLDocumentCreator.operationStatus(false, Localization.MESSAGGIO_ERRORE_NON_SEI_ADMIN);
 					break;
 				}
 				String toKick = req.getParameter("sessione");
 				if(toKick!=null){
 					boolean k = AuthenticatedUsers.getInstance().kickUser(toKick);
-					if(k)
-						xml = XMLDocumentCreator.operationStatus(true, "");
-					else
-						xml = XMLDocumentCreator.operationStatus(false, "Sessione non trovata");
+					xml = XMLDocumentCreator.operationStatus(k, k?"":Localization.MESSAGGIO_ERRORE_SESSIONE_NON_TROVATA);
+					
 				}
-				else
-					xml = XMLDocumentCreator.errorParameters();
 				break;
 			case COMMAND_CHANGE_PASSWORD:
-				if(verificaCookieLogin(req.getCookies())){
+				if(AuthenticatedUsers.getInstance().isAuthenticated(req.getCookies())){
 					String newPass = req.getParameter("newPass");
 					String oldPass = req.getParameter("oldPass");
 					String u1 = CookieManager.getValueFromCookie(req.getCookies(), CookieManager.COOKIE_USERNAME);
-					if(u1==null)
-						xml = XMLDocumentCreator.errorParameters();
-					else {
+					if(u1!=null){
 						boolean r1 = AuthenticatedUsers.getInstance().changePassword(u1, oldPass, newPass);
-						if(r1)
-							xml = XMLDocumentCreator.operationStatus(true, "Password cambiata con successo");
-						else
-							xml = XMLDocumentCreator.operationStatus(true, "Errore durante il cambiamento della password");
+						xml = XMLDocumentCreator.operationStatus(r1,r1?Localization.MESSAGGIO_PASSWORD_CAMBIATA:Localization.MESSAGGIO_ERRORE_UPDATE);
 					}
 				}
 				else {
-					xml = XMLDocumentCreator.operationStatus(false, "Non sei loggato");
+					xml = XMLDocumentCreator.operationStatus(false, Localization.MESSAGGIO_ERRORE_NON_LOGGATO);
 				}
 				break;
 			case COMMAND_LIST_SESSIONI:
-				if(isAdmin(req.getCookies())){
+				if(AuthenticatedUsers.getInstance().isAdmin(req.getCookies())){
 					ArrayList<Entry<String, String>> list = AuthenticatedUsers.getInstance().getAuthenticatedUsersList();
 					xml = XMLDocumentCreator.listSessions(list);
 				}
 				else
-					xml = XMLDocumentCreator.operationStatus(false, "Solo gli amministratori possono accedere a questa funzione");
+					xml = XMLDocumentCreator.operationStatus(false, Localization.MESSAGGIO_SOLO_ADMIN);
 				break;
 			default:
 				xml = XMLDocumentCreator.errorParameters();
 		}
 		XMLDocumentCreator.sendResponse(resp, xml);
-	}
-	private boolean verificaCookieLogin(Cookie[] listCookie){
-		if(listCookie == null)
-			return false;
-		
-		String user=CookieManager.getValueFromCookie(listCookie, CookieManager.COOKIE_USERNAME);
-		String session=CookieManager.getValueFromCookie(listCookie, CookieManager.COOKIE_SESSION_ID);
-		
-		if(user!=null && session!=null){
-			return AuthenticatedUsers.getInstance().isAuthenticated(user, session);
-		}
-		return false;
-	}
-	private boolean isAdmin(Cookie[] listCookie){
-		if(listCookie == null)
-			return false;
-		
-		String user=CookieManager.getValueFromCookie(listCookie, CookieManager.COOKIE_USERNAME);
-		String session=CookieManager.getValueFromCookie(listCookie, CookieManager.COOKIE_SESSION_ID);
-		
-		if(user!=null && session!=null){
-			if(AuthenticatedUsers.getInstance().isAuthenticated(user, session) && AuthenticatedUsers.getInstance().isAdmin(user))
-				return true;
-		}
-		return false;
 	}
 	private boolean doLogout(Cookie[] listCookie){
 		if(listCookie == null)

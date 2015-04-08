@@ -2,11 +2,14 @@ package it.geori.as.communication;
 
 import it.geori.as.data.Ingrediente;
 import it.geori.as.data.Menu;
+import it.geori.as.data.Prodotto;
+import it.geori.as.data.ProdottoCategoria;
 import it.geori.as.data.Tavolo;
 
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Map;
 import java.util.Map.Entry;
 
 import javax.servlet.http.HttpServletResponse;
@@ -50,7 +53,7 @@ public class XMLDocumentCreator {
 		return doc;
 	}
 	public static Document errorParameters(){
-		return operationStatus(false, "Parametri non presenti o valori non validi");
+		return operationStatus(false, Localization.MESSAGGIO_ERRORE_PARAMETRI);
 	}
 	public static Document listSessions(ArrayList<Entry<String, String>> l){
 		Element root = getBooleanElement(true, "");
@@ -127,6 +130,14 @@ public class XMLDocumentCreator {
 			main_menu.addContent(menu);
 		}
 		root.addContent(main_menu);
+		Document doc = new Document(root);
+		return doc;
+	}
+	public static Document listMenuDetails(Map<ProdottoCategoria, ArrayList<Prodotto>> dett){
+		Element root = getBooleanElement(true, "");
+		
+		//TODO
+		
 		Document doc = new Document(root);
 		return doc;
 	}

@@ -36,7 +36,7 @@ public class ServletMenu extends HttpServlet {
 			switch(action){
 				case COMMAND_ADD_MENU:
 					if(!AuthenticatedUsers.getInstance().isAdmin(req.getCookies())){
-						xml = XMLDocumentCreator.operationStatus(false, "Operazione consentita solo agli amministratori");
+						xml = XMLDocumentCreator.operationStatus(false, Localization.MESSAGGIO_SOLO_ADMIN);
 						break;
 					}
 					String add_nome = req.getParameter("nome");
@@ -48,18 +48,16 @@ public class ServletMenu extends HttpServlet {
 					break;
 				case COMMAND_CREATE_MENU_FROM:
 					if(!AuthenticatedUsers.getInstance().isAdmin(req.getCookies())){
-						xml = XMLDocumentCreator.operationStatus(false, "Operazione consentita solo agli amministratori");
+						xml = XMLDocumentCreator.operationStatus(false, Localization.MESSAGGIO_SOLO_ADMIN);
 						break;
 					}
 					String create_from_id = req.getParameter("id");
-					if(create_from_id!=null){
+					String create_from_nome = req.getParameter("nome");
+					if(create_from_id!=null && create_from_nome!=null && create_from_nome.length()>0){
 						try {
 							int id = Integer.parseInt(create_from_id);
-							Menu menu = DBMenu.getInstance().getMenuByID(id);
-							if(menu!=null){
-								boolean res = DBMenu.getInstance().cloneMenuFrom(menu); 
-								xml = XMLDocumentCreator.operationStatus(res, res?"":"");
-							}
+							boolean res = DBMenu.getInstance().cloneMenuFrom(id, create_from_nome); 
+							xml = XMLDocumentCreator.operationStatus(res, res?"":"");
 						}
 						catch(Exception e){
 							xml = XMLDocumentCreator.errorParameters();
@@ -68,7 +66,7 @@ public class ServletMenu extends HttpServlet {
 					break;
 				case COMMAND_DELETE_MENU:
 					if(!AuthenticatedUsers.getInstance().isAdmin(req.getCookies())){
-						xml = XMLDocumentCreator.operationStatus(false, "Operazione consentita solo agli amministratori");
+						xml = XMLDocumentCreator.operationStatus(false, Localization.MESSAGGIO_SOLO_ADMIN);
 						break;
 					}
 					String del_id=req.getParameter("id");
@@ -89,25 +87,70 @@ public class ServletMenu extends HttpServlet {
 					break;
 				case COMMAND_UPDATE_MENU:
 					if(!AuthenticatedUsers.getInstance().isAdmin(req.getCookies())){
-						xml = XMLDocumentCreator.operationStatus(false, "Operazione consentita solo agli amministratori");
+						xml = XMLDocumentCreator.operationStatus(false, Localization.MESSAGGIO_SOLO_ADMIN);
 						break;
+					}
+					String update_id = req.getParameter("id");
+					String update_nome = req.getParameter("nome");
+					String update_data = req.getParameter("data");
+					if(update_id!=null && update_nome!=null && update_nome.length()>0 && update_data!=null){
+						try {
+							int id = Integer.parseInt(update_id);
+							Menu m = new Menu(id, update_nome, update_data);
+							boolean res = DBMenu.getInstance().updateMenu(m);
+							xml = XMLDocumentCreator.operationStatus(res, res?"":"");
+						}
+						catch(Exception e){
+							xml = XMLDocumentCreator.errorParameters();
+						}
 					}
 					break;
 				case COMMAND_ADD_ITEM_TO_MENU:
 					if(!AuthenticatedUsers.getInstance().isAdmin(req.getCookies())){
-						xml = XMLDocumentCreator.operationStatus(false, "Operazione consentita solo agli amministratori");
+						xml = XMLDocumentCreator.operationStatus(false, Localization.MESSAGGIO_SOLO_ADMIN);
 						break;
+					}
+					String add_item_menu = req.getParameter("menu");
+					String add_item_item = req.getParameter("prodotto");
+					if(add_item_item!=null && add_item_menu!=null){
+						try {
+							int menu = Integer.parseInt(add_item_menu);
+							int prod = Integer.parseInt(add_item_item);
+							boolean res = DBMenu.getInstance().addItemToMenu(menu, prod);
+							xml = XMLDocumentCreator.operationStatus(res, res?"":"");
+						}
+						catch(Exception e){}
 					}
 					break;
 				case COMMAND_REMOVE_ITEM_FROM_MENU:
 					if(!AuthenticatedUsers.getInstance().isAdmin(req.getCookies())){
-						xml = XMLDocumentCreator.operationStatus(false, "Operazione consentita solo agli amministratori");
+						xml = XMLDocumentCreator.operationStatus(false, Localization.MESSAGGIO_SOLO_ADMIN);
 						break;
+					}
+					String remove_item_menu = req.getParameter("menu");
+					String remove_item_item = req.getParameter("prodotto");
+					if(remove_item_item!=null && remove_item_menu!=null){
+						try {
+							int menu = Integer.parseInt(remove_item_menu);
+							int prod = Integer.parseInt(remove_item_item);
+							boolean res = DBMenu.getInstance().removeItemFromMenu(menu, prod);
+							xml = XMLDocumentCreator.operationStatus(res, res?"":"");
+						}
+						catch(Exception e){}
 					}
 					break;
 				case COMMAND_GET_LIST_PRODOTTI_MENU:
-					
+					/* TODO
+					String list_menu_dett = req.getParameter("id");
+					if(list_menu_dett!=null){
+						int id = Integer.parseInt(list_menu_dett);
+						Map<ProdottoCategoria, ArrayList<Prodotto>> dettagli = DBMenu.getInstance().getListProdottiMenu(id);
+						xml = XMLDocumentCreator.listMenuDetails(dettagli);
+					}
+					*/
 					break;
+				default:
+					xml = XMLDocumentCreator.errorParameters();
 			}
 		}
 		XMLDocumentCreator.sendResponse(resp, xml);
