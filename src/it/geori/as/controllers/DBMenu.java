@@ -14,6 +14,7 @@ import java.sql.Statement;
 import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -358,7 +359,7 @@ public class DBMenu extends CacheManager {
 		return idProdotti;
 	}
 	public Map<ProdottoCategoria, ArrayList<Prodotto>> getListProdottiMenu(int menu){
-		
-		return null;
+		Map<ProdottoCategoria, ArrayList<Prodotto>> list = new HashMap<ProdottoCategoria, ArrayList<Prodotto>>();
+		return list;
 	}
 }

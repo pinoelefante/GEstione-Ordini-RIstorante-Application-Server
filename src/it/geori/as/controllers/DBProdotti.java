@@ -279,15 +279,79 @@ public class DBProdotti extends CacheManager {
 	}
 	private Map<Integer, ProdottoCategoria> cacheCategorie = new HashMap<>();
 	public ProdottoCategoria getProdottoCategoria(int id){
-		//TODO 
-		return null;
+		if(cacheCategorie.containsKey(id))
+			return cacheCategorie.get(id);
+		else {
+			String query = "SELECT * FROM "+TABLE_NAME_CATEGORIE+" WHERE "+COLUMN_CATEGORIE_ID+"="+id;
+			Connection con;
+			try {
+				con = DBConnectionPool.getConnection();
+			} 
+			catch (SQLException e) {
+				e.printStackTrace();
+				return null;
+			}
+			ProdottoCategoria pc = null;
+			try {
+				PreparedStatement st = con.prepareStatement(query);
+				ResultSet rs = st.executeQuery();
+				if(rs.next()){
+					int idCat = rs.getInt(COLUMN_CATEGORIE_ID);
+					String nome = rs.getString(COLUMN_CATEGORIE_NOME);
+					pc = new ProdottoCategoria(idCat, nome);
+					cacheCategorie.put(id, pc);
+				}
+				rs.close();
+				st.close();
+			} 
+			catch (SQLException e) {
+				e.printStackTrace();
+			}
+			DBConnectionPool.releaseConnection(con);
+			return pc;
+		}
 	}
 	public boolean addProdottoCategoria(ProdottoCategoria cat){
-		//TODO 
-		return false;
+		Connection con;
+		Savepoint sp;
+		try {
+			con = DBConnectionPool.getConnection();
+			sp = con.setSavepoint();
+		} 
+		catch (SQLException e) {
+			e.printStackTrace();
+			return false;
+		}
+		boolean res = false;
+		String query = "INSERT INTO "+TABLE_NAME_CATEGORIE+" ("+COLUMN_CATEGORIE_NOME+") VALUES (\""+cat.getNomeCategoria()+"\")";
+		try {
+			PreparedStatement st = con.prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
+			if(st.executeUpdate()>0){
+				ResultSet rs = st.getGeneratedKeys();
+				if(rs.next()){
+					int id = rs.getInt(1);
+					cat.setID(id);
+					res = true;
+					con.commit();
+					cacheCategorie.put(id, cat);
+				}
+				rs.close();
+				st.close();
+			}
+		} 
+		catch (SQLException e) {
+			e.printStackTrace();
+			try {
+				con.rollback(sp);
+			} 
+			catch (SQLException e1) {
+				e1.printStackTrace();
+			}
+		}
+		DBConnectionPool.releaseConnection(con);
+		return res;
 	}
 	public boolean removeProdottoCategoria(int id){
-		//TODO
 		String query = "DELETE FROM "+TABLE_NAME_CATEGORIE+" WHERE "+COLUMN_CATEGORIE_ID+"="+id;
 		Connection con;
 		Savepoint sp;
@@ -307,6 +371,7 @@ public class DBProdotti extends CacheManager {
 				res = true;
 				cacheCategorie.remove(id);
 			}
+			st.close();
 		} 
 		catch (SQLException e) {
 			e.printStackTrace();
@@ -317,6 +382,7 @@ public class DBProdotti extends CacheManager {
 				e1.printStackTrace();
 			}
 		}
+		DBConnectionPool.releaseConnection(con);
 		return res;
 	}
 }

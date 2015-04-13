@@ -14,6 +14,9 @@ public class ProdottoCategoria implements Identifier {
 	public Integer getIdCategoria() {
 		return idCategoria;
 	}
+	public void setID(int id){
+		idCategoria = id;
+	}
 	public String getNomeCategoria() {
 		return nomeCategoria;
 	}
