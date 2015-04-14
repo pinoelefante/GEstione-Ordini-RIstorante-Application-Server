@@ -178,9 +178,11 @@ public class DBProdotti extends CacheManager {
 		return res;
 	}
 	private ArrayList<Ingrediente> getIngredientiToRemove(Prodotto p1, Prodotto p2){
+		//TODO
 		return null;
 	}
 	private ArrayList<Ingrediente> getIngredientiToAdd(Prodotto p1, Prodotto p2){
+		//TODO
 		return null;
 	}
 	public Prodotto getProdottoByID(int id){
@@ -199,7 +201,7 @@ public class DBProdotti extends CacheManager {
 					String desc = rs.getString(COLUMN_PRODOTTO_DESCRIZIONE);
 					p = new Prodotto(idCat, idP, nome, desc, prezzo);
 					addItemToCache(p);
-					String q2 = "SELECT dettagli.id_ingrediente FROM prodotti AS prod JOIN prodotti_dettagli AS dettagli WHERE prod.id_prodotto=dettagli.id_prodotto";
+					String q2 = "SELECT dettagli."+DBIngredienti.COLUMN_INGREDIENTI_ID+" FROM "+TABLE_NAME_PRODOTTI+" AS prod JOIN "+TABLE_NAME_PRODOTTI_DETT+" AS dettagli WHERE prod."+COLUMN_PRODOTTO_ID+"=dettagli."+COLUMN_PRODOTTO_DETT_PRODOTTO+" AND prod."+COLUMN_PRODOTTO_ID+"="+p.getID();
 					PreparedStatement stP = con.prepareStatement(q2);
 					ResultSet rsP = stP.executeQuery();
 					while(rsP.next()){
@@ -370,6 +372,43 @@ public class DBProdotti extends CacheManager {
 				con.commit();
 				res = true;
 				cacheCategorie.remove(id);
+			}
+			st.close();
+		} 
+		catch (SQLException e) {
+			e.printStackTrace();
+			try {
+				con.rollback(sp);
+			} 
+			catch (SQLException e1) {
+				e1.printStackTrace();
+			}
+		}
+		DBConnectionPool.releaseConnection(con);
+		return res;
+	}
+	public boolean updateProdottoCategoria(ProdottoCategoria p){
+		String query = "UPDATE "+TABLE_NAME_CATEGORIE+" SET "+COLUMN_CATEGORIE_NOME+"=\""+p.getNomeCategoria()+"\" WHERE "+COLUMN_CATEGORIE_ID+"="+p.getID();
+		Connection con;
+		Savepoint sp;
+		try {
+			con = DBConnectionPool.getConnection();
+			sp = con.setSavepoint();
+		} 
+		catch (SQLException e) {
+			e.printStackTrace();
+			return false;
+		}
+		boolean res = false;
+		try {
+			PreparedStatement st = con.prepareStatement(query);
+			if(st.executeUpdate()>0){
+				res = true;
+				con.commit();
+				ProdottoCategoria cat_cache = getProdottoCategoria(p.getID());
+				if(cat_cache!=null){
+					cat_cache.setNomeCategoria(p.getNomeCategoria());
+				}
 			}
 			st.close();
 		} 

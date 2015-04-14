@@ -358,8 +358,66 @@ public class DBMenu extends CacheManager {
 		DBConnectionPool.releaseConnection(con);
 		return idProdotti;
 	}
-	public Map<ProdottoCategoria, ArrayList<Prodotto>> getListProdottiMenu(int menu){
+	public Map<ProdottoCategoria, ArrayList<Prodotto>> getListProdottiMenu(int menu, boolean forceQuery){
 		Map<ProdottoCategoria, ArrayList<Prodotto>> list = new HashMap<ProdottoCategoria, ArrayList<Prodotto>>();
+		Menu m = getMenuByID(menu);
+		if(m.getListProdotti().size()==0 || forceQuery){
+			//String query = "SELECT prod.id_prodotto, prod.nome_prodotto, prod.prezzo_prodotto, prod.descrizione, categorie.id_categoria, categorie.nome_categoria FROM prodotti AS prod JOIN prodotti_categorie AS categorie JOIN menu AS menu JOIN menu_dettagli AS m_det WHERE menu.versione_menu=1 AND m_det.id_prodotto=prod.id_prodotto AND categorie.id_categoria=prod.categoria ORDER BY categorie.nome_categoria ASC, prod.nome_prodotto ASC";
+			String query = "SELECT "+COLUMN_PRODOTTO_DETTAGLI+" FROM "+TABLE_NAME_DETTAGLI+" WHERE "+COLUMN_MENU_DETTAGLI+"="+menu;
+			Connection con = null;
+			try {
+				con = DBConnectionPool.getConnection();
+				PreparedStatement st = con.prepareStatement(query);
+				ResultSet rs = st.executeQuery();
+				m.getListProdotti().clear();
+				while(rs.next()){
+					int idP = rs.getInt(COLUMN_PRODOTTO_DETTAGLI);
+					Prodotto p = DBProdotti.getInstance().getProdottoByID(idP);
+					if(p!=null){
+						ProdottoCategoria categoria = DBProdotti.getInstance().getProdottoCategoria(p.getIdCategoria());
+						if(!list.containsKey(categoria)){
+							ArrayList<Prodotto> l_prod = new ArrayList<Prodotto>();
+							list.put(categoria, l_prod);
+						}
+						ArrayList<Prodotto> l_prod = list.get(categoria);
+						addProdottoToCacheList(l_prod, p);
+					}
+				}
+				rs.close();
+				st.close();
+			} 
+			catch (SQLException e) {
+				e.printStackTrace();
+			}
+			finally {
+				DBConnectionPool.releaseConnection(con);
+			}
+		}
+		else {
+			Map<Integer,Prodotto> listRaw = m.getListProdotti();
+			for(Entry<Integer, Prodotto> e : listRaw.entrySet()){
+				ProdottoCategoria cat = DBProdotti.getInstance().getProdottoCategoria(e.getKey());
+				if(!list.containsKey(cat)){
+					list.put(cat, new ArrayList<Prodotto>());
+				}
+				ArrayList<Prodotto> prodotti = list.get(cat);
+				addProdottoToCacheList(prodotti, e.getValue());
+			}
+		}
 		return list;
+	}
+	private void addProdottoToCacheList(ArrayList<Prodotto> list, Prodotto p){
+		boolean insertOK = false;
+		for(int i=0;i<list.size() && !insertOK;i++){
+			int compareResult =p.getNomeProdotto().compareToIgnoreCase(list.get(i).getNomeProdotto()); 
+			if(compareResult<0){
+				list.add(i, p);
+				insertOK=true;
+			}
+			else if(compareResult==0)
+				insertOK=true;
+		}
+		if(!insertOK)
+			list.add(p);
 	}
 }

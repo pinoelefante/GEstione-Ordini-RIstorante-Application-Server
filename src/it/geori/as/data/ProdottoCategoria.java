@@ -20,6 +20,9 @@ public class ProdottoCategoria implements Identifier {
 	public String getNomeCategoria() {
 		return nomeCategoria;
 	}
+	public void setNomeCategoria(String s){
+		nomeCategoria = s;
+	}
 
 	@Override
 	public int getID() {

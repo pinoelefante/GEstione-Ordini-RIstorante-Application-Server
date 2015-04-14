@@ -27,7 +27,7 @@ public class DBIngredienti extends CacheManager {
 		loadAllIngredienti();
 	}
 	
-	private final static String TABLE_NAME_INGREDIENTI = "ingredienti",
+	protected final static String TABLE_NAME_INGREDIENTI = "ingredienti",
 			COLUMN_INGREDIENTI_ID="id_ingrediente",
 			COLUMN_INGREDIENTI_NOME="nome_ingrediente",
 			COLUMN_INGREDIENTI_PREZZO="prezzo_ingrediente";

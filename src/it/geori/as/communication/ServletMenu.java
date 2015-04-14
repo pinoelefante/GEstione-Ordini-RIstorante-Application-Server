@@ -2,9 +2,12 @@ package it.geori.as.communication;
 
 import it.geori.as.controllers.DBMenu;
 import it.geori.as.data.Menu;
+import it.geori.as.data.Prodotto;
+import it.geori.as.data.ProdottoCategoria;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Map;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -140,14 +143,12 @@ public class ServletMenu extends HttpServlet {
 					}
 					break;
 				case COMMAND_GET_LIST_PRODOTTI_MENU:
-					/* TODO
 					String list_menu_dett = req.getParameter("id");
 					if(list_menu_dett!=null){
 						int id = Integer.parseInt(list_menu_dett);
-						Map<ProdottoCategoria, ArrayList<Prodotto>> dettagli = DBMenu.getInstance().getListProdottiMenu(id);
+						Map<ProdottoCategoria, ArrayList<Prodotto>> dettagli = DBMenu.getInstance().getListProdottiMenu(id,false);
 						xml = XMLDocumentCreator.listMenuDetails(dettagli);
 					}
-					*/
 					break;
 				default:
 					xml = XMLDocumentCreator.errorParameters();
