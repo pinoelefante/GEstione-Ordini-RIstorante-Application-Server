@@ -365,6 +365,8 @@ public class DBMenu extends CacheManager {
 	public Map<ProdottoCategoria, ArrayList<Prodotto>> getListProdottiMenu(int menu, boolean forceQuery){
 		Map<ProdottoCategoria, ArrayList<Prodotto>> list = new HashMap<ProdottoCategoria, ArrayList<Prodotto>>();
 		Menu m = getMenuByID(menu);
+		if(m==null)
+			return list;
 		if(m.getListProdotti().size()==0 || forceQuery){
 			//String query = "SELECT prod.id_prodotto, prod.nome_prodotto, prod.prezzo_prodotto, prod.descrizione, categorie.id_categoria, categorie.nome_categoria FROM prodotti AS prod JOIN prodotti_categorie AS categorie JOIN menu AS menu JOIN menu_dettagli AS m_det WHERE menu.versione_menu=1 AND m_det.id_prodotto=prod.id_prodotto AND categorie.id_categoria=prod.categoria ORDER BY categorie.nome_categoria ASC, prod.nome_prodotto ASC";
 			String query = "SELECT "+COLUMN_PRODOTTO_DETTAGLI+" FROM "+TABLE_NAME_DETTAGLI+" WHERE "+COLUMN_MENU_DETTAGLI+"="+menu;
