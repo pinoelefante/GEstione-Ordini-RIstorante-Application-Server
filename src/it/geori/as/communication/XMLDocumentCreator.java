@@ -187,6 +187,8 @@ public class XMLDocumentCreator {
 		return menu;
 	}
 	private static Element elementProdottoCategoria(ProdottoCategoria categoria){
+		if(categoria == null)
+			System.out.println("categoria = null");
 		Element categoriaNode = new Element("categoria");
 		categoriaNode.setAttribute("nome",categoria.getNomeCategoria());
 		categoriaNode.setAttribute("id", categoria.getID()+"");

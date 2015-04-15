@@ -236,6 +236,8 @@ public class DBMenu extends CacheManager {
 						return false;
 					}
 				}
+				con.commit();
+				return true;
 			} 
 			catch (SQLException e) {
 				e.printStackTrace();
@@ -247,7 +249,9 @@ public class DBMenu extends CacheManager {
 				}
 				removeMenu(newMenu.getID());
 			}
-			DBConnectionPool.releaseConnection(con);
+			finally {
+				DBConnectionPool.releaseConnection(con);
+			}
 		}
 		return false;
 	}
@@ -282,7 +286,7 @@ public class DBMenu extends CacheManager {
 			return false;
 		}
 		
-		boolean res = addItemToMenu(menu, prod);
+		boolean res = addItemToMenu(con, menu, prod);
 		if(res){
 			try {
 				con.commit();
