@@ -298,7 +298,7 @@ public class DBProdotti extends CacheManager {
 				PreparedStatement st = con.prepareStatement(query);
 				ResultSet rs = st.executeQuery();
 				if(rs.next()){
-					int idCat = rs.getInt(COLUMN_CATEGORIE_ID);
+					Integer idCat = rs.getInt(COLUMN_CATEGORIE_ID);
 					String nome = rs.getString(COLUMN_CATEGORIE_NOME);
 					pc = new ProdottoCategoria(idCat, nome);
 					cacheCategorie.put(id, pc);

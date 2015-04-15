@@ -33,8 +33,8 @@ public class DBMenu extends CacheManager {
 			COLUMN_DATA="data_creazione";
 	
 	private final static String TABLE_NAME_DETTAGLI="menu_dettagli", 
-			COLUMN_PRODOTTO_DETTAGLI="id_prodotto", 
-			COLUMN_MENU_DETTAGLI="id_menu";
+			COLUMN_DETTAGLI_PRODOTTO="id_prodotto", 
+			COLUMN_DETTAGLI_MENU="id_menu";
 	
 	private DBMenu(){
 		super();
@@ -259,7 +259,7 @@ public class DBMenu extends CacheManager {
 		Prodotto p = DBProdotti.getInstance().getProdottoByID(prod);
 		Menu m = (Menu) getItem(menu);
 		if(p!=null){
-			String query = "INSERT INTO "+TABLE_NAME_DETTAGLI+" ("+COLUMN_MENU_DETTAGLI+","+COLUMN_PRODOTTO_DETTAGLI+") VALUES ("+menu+","+prod+")";
+			String query = "INSERT INTO "+TABLE_NAME_DETTAGLI+" ("+COLUMN_DETTAGLI_MENU+","+COLUMN_DETTAGLI_PRODOTTO+") VALUES ("+menu+","+prod+")";
 			try {
 				PreparedStatement st = con.prepareStatement(query);
 				boolean res = st.executeUpdate()>0;
@@ -307,7 +307,7 @@ public class DBMenu extends CacheManager {
 		return res;
 	}
 	public boolean removeItemFromMenu(int menu, int prod){
-		String query = "DELETE FROM "+TABLE_NAME_DETTAGLI+" WHERE "+COLUMN_MENU_DETTAGLI+"="+menu+" AND "+COLUMN_PRODOTTO_DETTAGLI+"="+prod;
+		String query = "DELETE FROM "+TABLE_NAME_DETTAGLI+" WHERE "+COLUMN_DETTAGLI_MENU+"="+menu+" AND "+COLUMN_DETTAGLI_PRODOTTO+"="+prod;
 		Connection con;
 		Savepoint sp;
 		Menu m = getMenuByID(menu);
@@ -345,14 +345,14 @@ public class DBMenu extends CacheManager {
 	}
 	private ArrayList<Integer> getListProdottiFromDB(int menu){
 		ArrayList<Integer> idProdotti = new ArrayList<Integer>();
-		String query = "SELECT * FROM "+TABLE_NAME_DETTAGLI+" WHERE "+COLUMN_MENU_DETTAGLI+"="+menu;
+		String query = "SELECT "+COLUMN_DETTAGLI_PRODOTTO+" FROM "+TABLE_NAME_DETTAGLI+" WHERE "+COLUMN_DETTAGLI_MENU+"="+menu;
 		Connection con = null;
 		try {
 			con = DBConnectionPool.getConnection();
 			PreparedStatement st = con.prepareStatement(query);
 			ResultSet rs = st.executeQuery();
 			while(rs.next()){
-				int idProd = rs.getInt(COLUMN_PRODOTTO_DETTAGLI);
+				int idProd = rs.getInt(COLUMN_DETTAGLI_PRODOTTO);
 				idProdotti.add(idProd);
 			}
 		} 
@@ -369,7 +369,7 @@ public class DBMenu extends CacheManager {
 			return list;
 		if(m.getListProdotti().size()==0 || forceQuery){
 			//String query = "SELECT prod.id_prodotto, prod.nome_prodotto, prod.prezzo_prodotto, prod.descrizione, categorie.id_categoria, categorie.nome_categoria FROM prodotti AS prod JOIN prodotti_categorie AS categorie JOIN menu AS menu JOIN menu_dettagli AS m_det WHERE menu.versione_menu=1 AND m_det.id_prodotto=prod.id_prodotto AND categorie.id_categoria=prod.categoria ORDER BY categorie.nome_categoria ASC, prod.nome_prodotto ASC";
-			String query = "SELECT "+COLUMN_PRODOTTO_DETTAGLI+" FROM "+TABLE_NAME_DETTAGLI+" WHERE "+COLUMN_MENU_DETTAGLI+"="+menu;
+			String query = "SELECT "+COLUMN_DETTAGLI_PRODOTTO+" FROM "+TABLE_NAME_DETTAGLI+" WHERE "+COLUMN_DETTAGLI_MENU+"="+menu;
 			Connection con = null;
 			try {
 				con = DBConnectionPool.getConnection();
@@ -377,10 +377,11 @@ public class DBMenu extends CacheManager {
 				ResultSet rs = st.executeQuery();
 				m.getListProdotti().clear();
 				while(rs.next()){
-					int idP = rs.getInt(COLUMN_PRODOTTO_DETTAGLI);
+					int idP = rs.getInt(COLUMN_DETTAGLI_PRODOTTO);
 					Prodotto p = DBProdotti.getInstance().getProdottoByID(idP);
 					if(p!=null){
-						ProdottoCategoria categoria = DBProdotti.getInstance().getProdottoCategoria(p.getIdCategoria());
+						int idCategoria = p.getIdCategoria();
+						ProdottoCategoria categoria = DBProdotti.getInstance().getProdottoCategoria(idCategoria);
 						if(!list.containsKey(categoria)){
 							ArrayList<Prodotto> l_prod = new ArrayList<Prodotto>();
 							list.put(categoria, l_prod);
@@ -402,12 +403,13 @@ public class DBMenu extends CacheManager {
 		else {
 			Map<Integer,Prodotto> listRaw = m.getListProdotti();
 			for(Entry<Integer, Prodotto> e : listRaw.entrySet()){
-				ProdottoCategoria cat = DBProdotti.getInstance().getProdottoCategoria(e.getKey());
+				Prodotto prod = e.getValue();
+				ProdottoCategoria cat = DBProdotti.getInstance().getProdottoCategoria(prod.getIdCategoria());
 				if(!list.containsKey(cat)){
 					list.put(cat, new ArrayList<Prodotto>());
 				}
 				ArrayList<Prodotto> prodotti = list.get(cat);
-				addProdottoToCacheList(prodotti, e.getValue());
+				addProdottoToCacheList(prodotti, prod);
 			}
 		}
 		return list;

@@ -2,7 +2,6 @@ package it.geori.as.data;
 
 import it.geori.as.data.interfaces.Identifier;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
