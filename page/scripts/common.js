@@ -1,15 +1,25 @@
-/**
- * 
- */
-function getError(xmlResponse){
-	
+function getError(xml){
+	var res = $(xml).find("message").text();
+	return res;
 }
-function onError(){
-	
+function onError(xml){
+	if(xml!=undefined){
+		alert(getError(xml));
+	}
+	else
+		alert("Si è verificato un errore");
 }
-function isResponseOK(xmlResponse){
-	
+function isResponseTrue(xml){
+	var res = $(xml).find("status").text();
+	return res=='true';
 }
-function showError(xmlResponse){
-	
+function AjaxCall(url,parameters,onsuccess){
+	$.ajax({
+		type : "POST",
+		url : url,
+		data : parameters,
+		dataType : "xml",
+		success: onsuccess,
+		error: onError
+	});
 }

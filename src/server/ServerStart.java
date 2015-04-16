@@ -31,6 +31,7 @@ public class ServerStart {
 						exception.printStackTrace();
 					}
 				}
+				System.exit(0);
 			}
 		},"Stop Jetty Hook")); 
 	}
