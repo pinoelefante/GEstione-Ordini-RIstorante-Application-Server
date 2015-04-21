@@ -10,6 +10,7 @@
 
 <script type="text/javascript" src="scripts/common.js"></script>
 <script type="text/javascript" src="scripts/authentication.js"></script>
+<script type="text/javascript" src="scripts/pages/common.js"></script>
 <script type="text/javascript" src="scripts/pages/index.js"></script>
 </head>
 <body>
@@ -33,7 +34,7 @@
 				          <ul class="dropdown-menu" role="menu">
 				            <li class="itemAdmin"><a href="#">Aggiungi utente</a></li>
 				            <li><a href="#">Cambia Password</a></li>
-				            <li class="divider"></li>
+				            <li class="divider itemAdmin"></li>
 				            <li class="itemAdmin"><a href="#">Sessioni attive</a></li>
 				         </ul>
        				</li>
@@ -55,11 +56,11 @@
 					<li>
 						<form class="navbar-form">
 							<div class="form-group itemNotLogged">
-								<input type="text" class="form-control" placeholder="Username">
-								<input type="password" class="form-control" placeholder="Password">
-								<input type="button" class="btn btn-default" value="Login">
+								<input type="text" class="form-control" id="username" placeholder="Username">
+								<input type="password" class="form-control" id="password" placeholder="Password">
+								<input type="button" class="btn btn-default" value="Login" onclick="doLogin()">
 							</div>
-							<input type="button" class="btn btn-default itemLogged" value="Logout">
+							<input type="button" class="btn btn-default itemLogged" value="Logout" onclick="logout()">
 						</form>
 						
 					</li>
@@ -69,6 +70,7 @@
 		</div>
 		<!-- /.container-fluid -->
 	</nav>
+	
 	<div class="container-fluid"></div>
 
 </body>

@@ -26,7 +26,8 @@ public class ServletAuthentication extends HttpServlet {
 		COMMAND_REGISTRA="signup",
 		COMMAND_CHIUDI_SESSIONE="kick_user",
 		COMMAND_LIST_SESSIONI="list_sessions",
-		COMMAND_CHANGE_PASSWORD="change_password";
+		COMMAND_CHANGE_PASSWORD="change_password",
+		COMMAND_IS_ADMIN="isAdmin";
 
 	@Override
 	protected void doPost(HttpServletRequest req, HttpServletResponse resp)	throws ServletException, IOException {
@@ -142,6 +143,10 @@ public class ServletAuthentication extends HttpServlet {
 				}
 				else
 					xml = XMLDocumentCreator.operationStatus(false, Localization.MESSAGGIO_SOLO_ADMIN);
+				break;
+			case COMMAND_IS_ADMIN:
+				boolean isAdmin = AuthenticatedUsers.getInstance().isAdmin(req.getCookies());
+				xml = XMLDocumentCreator.operationStatus(isAdmin, "");
 				break;
 			default:
 				xml = XMLDocumentCreator.errorParameters();

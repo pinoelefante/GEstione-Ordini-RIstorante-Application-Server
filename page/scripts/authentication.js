@@ -26,6 +26,9 @@ function changePassword(oldPassword, newPassword){
 function listSessions(){
 	AjaxCall("./ServletAuthentication","action=list_sessions",listSessionsSuccess);
 }
+function isAdmin(callback){
+	AjaxCall("./ServletAuthentication","action=isAdmin",callback==undefined?isAdminSuccess:callback);
+}
 function loginSuccess(xml){
 	if(isResponseTrue(xml)){
 		logged = true;
@@ -37,13 +40,14 @@ function loginSuccess(xml){
 	}
 }
 function logoutSuccess(xml){
-	//TODO
+	location.reload();
 }
 function isLoggedSuccess(xml){
 	logged = isResponseTrue(xml);
-	alert(logged?"Login OK":"Login fallito");
 	if(logged)
-		location.href = "./index.html";
+		location.reload();
+	else
+		alert("Login fallito");
 }
 function loginGuestSuccess(xml){
 	//TODO
@@ -61,5 +65,8 @@ function changePasswordSuccess(xml){
 	//TODO
 }
 function listSessionSuccess(xml){
+	//TODO
+}
+function isAdminSuccess(xml){
 	//TODO
 }
