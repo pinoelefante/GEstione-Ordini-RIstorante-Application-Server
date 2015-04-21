@@ -156,6 +156,7 @@ public class DBProdotti extends CacheManager {
 					if(add && toRem){
 						con.commit();
 						res = true;
+						updateItemToCache(p);
 					}
 					else {
 						con.rollback(sp);
@@ -178,12 +179,43 @@ public class DBProdotti extends CacheManager {
 		return res;
 	}
 	private ArrayList<Ingrediente> getIngredientiToRemove(Prodotto p1, Prodotto p2){
-		//TODO
-		return null;
+		ArrayList<Ingrediente> list = new ArrayList<Ingrediente>();
+		ArrayList<Ingrediente> p1List = p1.getIngredienti();
+		ArrayList<Ingrediente> p2List = p2.getIngredienti();
+		for(Ingrediente i1 : p1List){
+			boolean found = false;
+			for(int i=0;i<p2List.size();i++){
+				Ingrediente i2 = p1List.get(i);
+				if(i2.getID()==i1.getID()){
+					found = true;
+					break;
+				}
+			}
+			if(!found){
+				list.add(i1);
+			}
+		}
+		return list;
 	}
 	private ArrayList<Ingrediente> getIngredientiToAdd(Prodotto p1, Prodotto p2){
-		//TODO
-		return null;
+		ArrayList<Ingrediente> list = new ArrayList<Ingrediente>();
+		ArrayList<Ingrediente> p1List = p1.getIngredienti();
+		ArrayList<Ingrediente> p2List = p1.getIngredienti();
+		
+		for(Ingrediente i2 : p2List){
+			boolean found = false;
+			for(int i=0;i<p1List.size();i++){
+				Ingrediente i1 = p1List.get(i);
+				if(i2.getID()==i1.getID()){
+					found = true;
+					break;
+				}
+			}
+			if(!found){
+				list.add(i2);
+			}
+		}
+		return list;
 	}
 	public Prodotto getProdottoByID(int id){
 		Prodotto p = (Prodotto) getItem(id);
