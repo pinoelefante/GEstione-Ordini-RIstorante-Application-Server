@@ -2,12 +2,15 @@ package it.geori.as.data;
 
 import it.geori.as.data.interfaces.Identifier;
 
+import java.util.ArrayList;
+
 public class Ordine implements Identifier{
 	public final static int STATO_CREATO=0,
 			STATO_IN_CORSO=1, STATO_IN_PREPARAZIONE=2,STATO_PREPARATO=3,STATO_PAGATO=10;
 	private Integer id, tavolo, coperti, sconto, servitoDa, statoOrdine;
 	private double costoTotale;
 	private String dataCreazione, dataChiusura, guestCode;
+	private ArrayList<OrdineDettagli> dettagli_ordine;
 	
 	public Ordine(int id, int tavolo, int coperti, int servitoDa, String dataCreazione, String guestCode) {
 		this(id, tavolo, coperti, 0, servitoDa, STATO_CREATO, 0.0f, dataCreazione, "", guestCode);
@@ -22,6 +25,7 @@ public class Ordine implements Identifier{
 		setDataCreazione(creazione);
 		setDataChiusura(chiusura);
 		setGuestCode(guest);
+		dettagli_ordine = new ArrayList<OrdineDettagli>();
 	}
 
 	public Integer getStatoOrdine() {
@@ -103,5 +107,7 @@ public class Ordine implements Identifier{
 	public int getID() {
 		return id;
 	}
-
+	public ArrayList<OrdineDettagli> getDettagliOrdine(){
+		return dettagli_ordine;
+	}
 }

@@ -1,9 +1,15 @@
 package it.geori.as.controllers;
 
+import it.geori.as.data.Ordine;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Savepoint;
+import java.sql.Statement;
+import java.text.DateFormat;
+import java.util.Date;
 
 public class DBOrdini extends CacheManager {
 	private final static String 
@@ -88,5 +94,63 @@ public class DBOrdini extends CacheManager {
 		String nonce = sb.toString();
 		return nonce;
 	}
-	
+	public boolean addNewOrder(Ordine ordine){
+		String guestCode;
+		do {
+			guestCode = getRandomString(setNormalized);
+		}
+		while(isOrderCodeExists(guestCode));
+		ordine.setGuestCode(guestCode);
+		String query = "INSERT INTO "+TABLE_NAME+" ("+COLUMN_TAVOLO+","+COLUMN_COPERTI+","+COLUMN_STATO_ORDINE+","+COLUMN_SERVITO_DA+","+COLUMN_GUEST_CODE+") VALUES ("+
+				ordine.getTavolo()+","+ordine.getCoperti()+","+Ordine.STATO_CREATO+","+ordine.getServitoDa()+",\""+ordine.getGuestCode()+"\")";
+		Connection con;
+		Savepoint sp;
+		try {
+			con = DBConnectionPool.getConnection();
+			sp = con.setSavepoint();
+		}
+		catch (SQLException e) {
+			e.printStackTrace();
+			return false;
+		}
+		boolean res = false;
+		PreparedStatement st = null;
+		try {
+			st = con.prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
+			if(st.executeUpdate()>0){
+				res = true;
+				con.commit();
+				String data = DateFormat.getInstance().format(new Date());
+				ordine.setDataCreazione(data);
+				ResultSet rs = st.getGeneratedKeys();
+				if(rs.next()){
+					int id = rs.getInt(1);
+					ordine.setId(id);
+				}
+				rs.close();
+				addItemToCache(ordine);
+			}
+		}
+		catch (SQLException e) {
+			e.printStackTrace();
+			try {
+				con.rollback(sp);
+			}
+			catch (SQLException e1) {
+				e1.printStackTrace();
+			}
+		}
+		finally {
+			if(st!=null){
+				try {
+					st.close();
+				}
+				catch (SQLException e) {
+					e.printStackTrace();
+				}
+			}
+			DBConnectionPool.releaseConnection(con);
+		}
+		return res;
+	}
 }

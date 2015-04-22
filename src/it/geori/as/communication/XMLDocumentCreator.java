@@ -2,6 +2,7 @@ package it.geori.as.communication;
 
 import it.geori.as.data.Ingrediente;
 import it.geori.as.data.Menu;
+import it.geori.as.data.Ordine;
 import it.geori.as.data.Prodotto;
 import it.geori.as.data.ProdottoCategoria;
 import it.geori.as.data.Tavolo;
@@ -193,5 +194,43 @@ public class XMLDocumentCreator {
 		categoriaNode.setAttribute("nome",categoria.getNomeCategoria());
 		categoriaNode.setAttribute("id", categoria.getID()+"");
 		return categoriaNode;
+	}
+	private static Element elementOrdine(Ordine o){
+		Element ordine = new Element("ordine");
+		Element id = new Element("id");
+		id.addContent(""+o.getID());
+		Element tavolo = new Element("tavolo");
+		tavolo.addContent(""+o.getTavolo());
+		Element coperti = new Element("coperti");
+		coperti.addContent(""+o.getCoperti());
+		Element data_creazione = new Element("data_creazione");
+		coperti.addContent(o.getDataCreazione());
+		Element data_chiusura = new Element("data_chiusura");
+		coperti.addContent(o.getDataChiusura());
+		Element sconto = new Element("sconto");
+		sconto.addContent(""+o.getSconto());
+		Element totale = new Element("totale");
+		totale.addContent(""+o.getCostoTotale());
+		Element stato_ordine = new Element("stato_ordine");
+		stato_ordine.addContent(""+o.getStatoOrdine());
+		Element servito_da = new Element("servito_da");
+		servito_da.addContent(""+o.getServitoDa());
+		Element access_code = new Element("access_code");
+		access_code.addContent(""+o.getGuestCode());
+		
+		ordine.addContent(id);
+		ordine.addContent(tavolo);
+		ordine.addContent(coperti);
+		ordine.addContent(data_creazione);
+		ordine.addContent(data_chiusura);
+		ordine.addContent(sconto);
+		ordine.addContent(totale);
+		ordine.addContent(stato_ordine);
+		ordine.addContent(servito_da);
+		ordine.addContent(access_code);
+		
+		//TODO add dettagli ordine
+		
+		return ordine;
 	}
 }

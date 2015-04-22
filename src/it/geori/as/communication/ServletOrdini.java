@@ -1,5 +1,8 @@
 package it.geori.as.communication;
 
+import it.geori.as.controllers.DBOrdini;
+import it.geori.as.data.Ordine;
+
 import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
@@ -45,6 +48,9 @@ public class ServletOrdini extends HttpServlet{
 						int tavolo = Integer.parseInt(add_order_tavolo);
 						int coperti = Integer.parseInt(add_order_num_coperti);
 						Integer idServedBy = AuthenticatedUsers.getInstance().getIDUser(req.getCookies());
+						Ordine ordine = new Ordine(0, tavolo, coperti, idServedBy, "", "");
+						boolean res = DBOrdini.getInstance().addNewOrder(ordine);
+						//TODO
 					}
 					break;
 				case COMMAND_DEL_ORDER:
