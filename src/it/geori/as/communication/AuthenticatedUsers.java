@@ -127,6 +127,13 @@ public class AuthenticatedUsers {
 		
 		return isAuthenticated(user, session);
 	}
+	public Integer getIDUser(Cookie[] listCookie){
+		if(listCookie==null)
+			return null;
+		String user=CookieManager.getValueFromCookie(listCookie, CookieManager.COOKIE_USERNAME);
+		User u = authUsers.get(user);
+		return u.getID();
+	}
 }
 class User {
 	private String username, authcode, appearance, orderCode;

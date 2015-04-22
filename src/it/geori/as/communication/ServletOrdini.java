@@ -24,7 +24,8 @@ public class ServletOrdini extends HttpServlet{
 		COMMAND_ADD_TO_ORDER="order_add_to",
 		COMMAND_REMOVE_FROM_ORDER="order_remove_from",
 		COMMAND_CALC_ORDER="order_calc",
-		COMMAND_SCONTO_ORDER="order_add_sconto";
+		COMMAND_SCONTO_ORDER="order_add_sconto",
+		COMMAND_GUEST_ORDER="order_guest";
 	
 	@Override
 	protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
@@ -34,24 +35,58 @@ public class ServletOrdini extends HttpServlet{
 		if(action!=null){
 			switch(action){
 				case COMMAND_ADD_ORDER:
-					
+					if(!AuthenticatedUsers.getInstance().isAuthenticated(req.getCookies())){
+						docResponse = XMLDocumentCreator.operationStatus(false, Localization.MESSAGGIO_ERRORE_NON_LOGGATO);
+						break;
+					}
+					String add_order_tavolo=req.getParameter("tavolo");
+					String add_order_num_coperti=req.getParameter("coperti");
+					if(add_order_num_coperti!=null && add_order_tavolo!=null){
+						int tavolo = Integer.parseInt(add_order_tavolo);
+						int coperti = Integer.parseInt(add_order_num_coperti);
+						Integer idServedBy = AuthenticatedUsers.getInstance().getIDUser(req.getCookies());
+					}
 					break;
 				case COMMAND_DEL_ORDER:
-					
+					if(!AuthenticatedUsers.getInstance().isAuthenticated(req.getCookies())){
+						docResponse = XMLDocumentCreator.operationStatus(false, Localization.MESSAGGIO_ERRORE_NON_LOGGATO);
+						break;
+					}
 					break;
 				case COMMAND_MOD_ORDER:
+					if(!AuthenticatedUsers.getInstance().isAuthenticated(req.getCookies())){
+						docResponse = XMLDocumentCreator.operationStatus(false, Localization.MESSAGGIO_ERRORE_NON_LOGGATO);
+						break;
+					}
 					//TODO notify
 					break;
 				case COMMAND_ADD_TO_ORDER:
+					if(!AuthenticatedUsers.getInstance().isAuthenticated(req.getCookies())){
+						docResponse = XMLDocumentCreator.operationStatus(false, Localization.MESSAGGIO_ERRORE_NON_LOGGATO);
+						break;
+					}
 					//TODO notify
 					break;
 				case COMMAND_REMOVE_FROM_ORDER:
+					if(!AuthenticatedUsers.getInstance().isAuthenticated(req.getCookies())){
+						docResponse = XMLDocumentCreator.operationStatus(false, Localization.MESSAGGIO_ERRORE_NON_LOGGATO);
+						break;
+					}
 					//TODO notify
 					break;
 				case COMMAND_CALC_ORDER:
-					
+					if(!AuthenticatedUsers.getInstance().isAdmin(req.getCookies())){
+						docResponse = XMLDocumentCreator.operationStatus(false, Localization.MESSAGGIO_ERRORE_NON_LOGGATO);
+						break;
+					}
 					break;
 				case COMMAND_SCONTO_ORDER:
+					if(!AuthenticatedUsers.getInstance().isAdmin(req.getCookies())){
+						docResponse = XMLDocumentCreator.operationStatus(false, Localization.MESSAGGIO_ERRORE_NON_LOGGATO);
+						break;
+					}
+					break;
+				case COMMAND_GUEST_ORDER:
 					
 					break;
 			}

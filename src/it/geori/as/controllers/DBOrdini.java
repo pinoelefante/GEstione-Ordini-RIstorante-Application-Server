@@ -8,7 +8,9 @@ public class DBOrdini extends CacheManager {
 		}
 		return instance;
 	}
-	private DBOrdini(){}
+	private DBOrdini(){
+		super();
+	}
 	
 	public boolean isOrderCodeExists(String orderCode){
 		//TODO
@@ -28,4 +30,5 @@ public class DBOrdini extends CacheManager {
 		String nonce = sb.toString();
 		return nonce;
 	}
+	
 }
