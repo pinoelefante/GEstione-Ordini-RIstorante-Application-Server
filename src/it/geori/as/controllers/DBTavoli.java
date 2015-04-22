@@ -21,7 +21,7 @@ public class DBTavoli extends CacheManager {
 		return instance;
 	}
 	
-	private final static String TABLE_NAME="tavoli", 
+	private final static String TABLE_NAME="tavolo", 
 			COLUMN_ID = "id_tavolo", 
 			COLUMN_NOMETAVOLO = "nome_tavolo", 
 			COLUMN_COPERTO = "costo_coperto";

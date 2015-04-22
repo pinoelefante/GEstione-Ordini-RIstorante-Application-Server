@@ -25,18 +25,18 @@ public class DBProdotti extends CacheManager {
 	private DBProdotti(){
 		super();
 	}
-	private final static String TABLE_NAME_PRODOTTI = "prodotti",
+	private final static String TABLE_NAME_PRODOTTI = "prodotto",
 			COLUMN_PRODOTTO_ID="id_prodotto",
 			COLUMN_PRODOTTO_CATEGORIA="categoria",
 			COLUMN_PRODOTTO_NOME="nome_prodotto",
 			COLUMN_PRODOTTO_PREZZO="prezzo_prodotto",
 			COLUMN_PRODOTTO_DESCRIZIONE="descrizione";
 	
-	private final static String TABLE_NAME_PRODOTTI_DETT = "prodotti_dettagli",
+	private final static String TABLE_NAME_PRODOTTI_DETT = "prodotto_dettagli",
 			COLUMN_PRODOTTO_DETT_PRODOTTO="id_prodotto",
 			COLUMN_PRODOTTO_DETT_INGREDIENTE="id_ingrediente";
 	
-	private final static String TABLE_NAME_CATEGORIE = "prodotti_categorie",
+	private final static String TABLE_NAME_CATEGORIE = "prodotto_categorie",
 			COLUMN_CATEGORIE_ID="id_categoria",
 			COLUMN_CATEGORIE_NOME="nome_categoria";
 	

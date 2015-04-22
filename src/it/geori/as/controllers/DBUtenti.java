@@ -12,7 +12,7 @@ import java.util.Map;
 public class DBUtenti {
 	private static DBUtenti instance;
 	
-	public final static String TABLE_NAME="dipendenti", 
+	public final static String TABLE_NAME="dipendente", 
 			COLUMN_USERNAME="username", 
 			COLUMN_PASSWORD="password",
 			COLUMN_ID="id",
