@@ -110,4 +110,7 @@ public class Ordine implements Identifier{
 	public ArrayList<OrdineDettagli> getDettagliOrdine(){
 		return dettagli_ordine;
 	}
+	public void addDettaglioOrdine(OrdineDettagli det){
+		dettagli_ordine.add(det);
+	}
 }

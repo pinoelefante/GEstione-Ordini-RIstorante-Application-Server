@@ -7,11 +7,27 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class OrdineDettagli implements Identifier{
+	public final static int 
+		STATO_IN_CODA=0,
+		STATO_IN_PREPARAZIONE=1,
+		STATO_PREPARATO=2,
+		STATO_INGREDIENTI_NON_PRESENTI=3;
 	private int id;
 	private Map<Prodotto, Map<String,ArrayList<Ingrediente>>> prodotti;
 	private int quantita;
 	private String note;
+	private int stato;
 	
+	public OrdineDettagli(int id, int quantita, int stato, String note, Map<Prodotto, Map<String,ArrayList<Ingrediente>>> prodotti){
+		this.id = id;
+		this.quantita = quantita;
+		this.stato = stato;
+		this.note = note;
+		if(prodotti!=null)
+			this.prodotti = prodotti;
+		else
+			prodotti = new HashMap<Prodotto, Map<String,ArrayList<Ingrediente>>>();
+	}
 	public OrdineDettagli(Prodotto prod){
 		prodotti = new HashMap<Prodotto, Map<String,ArrayList<Ingrediente>>>();
 		Map<String,ArrayList<Ingrediente>> modifiche = new HashMap<String, ArrayList<Ingrediente>>(2);
@@ -24,6 +40,9 @@ public class OrdineDettagli implements Identifier{
 		Map<String,ArrayList<Ingrediente>> modifiche = new HashMap<String, ArrayList<Ingrediente>>(2);
 		prodotti.put(p, modifiche);
 		this.quantita = quantita;
+	}
+	public void addModificheToProdotto(Prodotto p, Map<String, ArrayList<Ingrediente>> mod){
+		prodotti.put(p, mod);
 	}
 	public void setQuantita(int newQuantita){
 		if(newQuantita==0){
@@ -78,5 +97,11 @@ public class OrdineDettagli implements Identifier{
 				return false;
 		}
 		return true;
+	}
+	public int getStato() {
+		return stato;
+	}
+	public void setStato(int stato) {
+		this.stato = stato;
 	}
 }
