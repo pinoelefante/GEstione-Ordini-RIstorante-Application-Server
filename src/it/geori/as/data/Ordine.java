@@ -113,4 +113,28 @@ public class Ordine implements Identifier{
 	public void addDettaglioOrdine(OrdineDettagli det){
 		dettagli_ordine.add(det);
 	}
+	public void addDettagliOrdine(ArrayList<OrdineDettagli> dett){
+		dettagli_ordine.clear();
+		dettagli_ordine = dett;
+	}
+	public boolean updateDettagliOrdine(OrdineDettagli newOrdine, int id){
+		for(int i=0;i<dettagli_ordine.size();i++){
+			OrdineDettagli o = dettagli_ordine.get(i);
+			if(o.getID()==id && o.isModificable()){
+				dettagli_ordine.set(i, newOrdine);
+				return true;
+			}
+		}
+		return false;
+	}
+	public boolean removeDettaglioOrdine(int id) throws Exception{
+		for(int i=0;i<dettagli_ordine.size();i++){
+			OrdineDettagli o = dettagli_ordine.get(i);
+			if(o.getID()==id && o.isRemovable()){
+				dettagli_ordine.remove(i);
+				return true;
+			}
+		}
+		return false;
+	}
 }

@@ -33,13 +33,15 @@ public class OrdineDettagli implements Identifier{
 		Map<String,ArrayList<Ingrediente>> modifiche = new HashMap<String, ArrayList<Ingrediente>>(2);
 		prodotti.put(prod, modifiche);
 	}
-	public OrdineDettagli(){
-		prodotti = new HashMap<Prodotto, Map<String,ArrayList<Ingrediente>>>();
+	public Map<Prodotto, Map<String, ArrayList<Ingrediente>>> getProdotti() {
+		return prodotti;
 	}
-	public void addProdotto(Prodotto p, int quantita){
+	public void setId(int id) {
+		this.id = id;
+	}
+	public void addProdotto(Prodotto p){
 		Map<String,ArrayList<Ingrediente>> modifiche = new HashMap<String, ArrayList<Ingrediente>>(2);
 		prodotti.put(p, modifiche);
-		this.quantita = quantita;
 	}
 	public void addModificheToProdotto(Prodotto p, Map<String, ArrayList<Ingrediente>> mod){
 		prodotti.put(p, mod);
@@ -103,5 +105,21 @@ public class OrdineDettagli implements Identifier{
 	}
 	public void setStato(int stato) {
 		this.stato = stato;
+	}
+	public boolean isRemovable(){
+		switch(getStato()){
+			case STATO_IN_CODA:
+			case STATO_INGREDIENTI_NON_PRESENTI:
+				return true;
+		}
+		return false;
+	}
+	public boolean isModificable(){
+		switch(getStato()){
+			case STATO_IN_CODA:
+			case STATO_INGREDIENTI_NON_PRESENTI:
+				return true;
+		}
+		return false;
 	}
 }
