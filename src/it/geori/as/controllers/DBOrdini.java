@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 
 public class DBOrdini extends CacheManager {
 	private final static String 
@@ -347,5 +348,76 @@ public class DBOrdini extends CacheManager {
 				return true;
 		}
 		return false;
+	}
+	private double calcolaTotale(Ordine ordine){
+		double totale = 0f;
+		for(OrdineDettagli od : ordine.getDettagliOrdine()){
+			Map<Prodotto,Map<String,ArrayList<Ingrediente>>> prodotti = od.getProdotti();
+			int divisioneOrdine = prodotti.size();
+			float parziale = 0f;
+			int quantita = od.getQuantita();
+			for(Entry<Prodotto, Map<String, ArrayList<Ingrediente>>> dett : prodotti.entrySet()){
+				parziale += dett.getKey().getPrezzo();
+				for(Ingrediente ingr : dett.getValue().get("+")){
+					parziale+=ingr.getPrezzo();
+				}
+				for(Ingrediente ingr : dett.getValue().get("-")){
+					parziale-=ingr.getPrezzo();
+				}
+			}
+			parziale = (parziale/divisioneOrdine)*quantita;
+			totale += parziale;
+		}
+		return totale;
+	}
+	public boolean calcolaTotale(int id){
+		Ordine ordine = getOrdine(id);
+		double totale = calcolaTotale(ordine);
+		ordine.setCostoTotale(totale);
+		return updateOrdine(ordine);
+	}
+	public boolean updateOrdine(Ordine o){
+		String query = "UPDATE "+TABLE_ORDINE_NAME+" SET "+
+				COLUMN_ORDINE_COPERTI+"="+o.getCoperti()+ " "+
+				COLUMN_ORDINE_DATA_CHIUSURA+"=\""+o.getDataChiusura()+"\" "+
+				COLUMN_ORDINE_SCONTO+"="+o.getSconto()+" "+
+				COLUMN_ORDINE_STATO_ORDINE+"="+o.getStatoOrdine()+" "+
+				COLUMN_ORDINE_TAVOLO+"="+o.getTavolo()+" "+
+				COLUMN_ORDINE_TOTALE+"="+o.getCostoTotale()+" "+
+				"WHERE "+COLUMN_ORDINE_ID+"="+o.getID();
+		Connection con;
+		Savepoint sp;
+		try {
+			con = DBConnectionPool.getConnection();
+			sp = con.setSavepoint();
+		}
+		catch (SQLException e) {
+			e.printStackTrace();
+			return false;
+		}
+		boolean res = false;
+		try {
+			PreparedStatement st = con.prepareStatement(query);
+			res = st.executeUpdate() > 0;
+			st.close();
+			if(res){
+				updateItemToCache(o);
+				con.commit();
+			}
+			return res;
+		}
+		catch (SQLException e) {
+			e.printStackTrace();
+			try {
+				con.rollback(sp);
+			}
+			catch (SQLException e1) {
+				e1.printStackTrace();
+			}
+		}
+		finally {
+			DBConnectionPool.releaseConnection(con);
+		}
+		return res;
 	}
 }
