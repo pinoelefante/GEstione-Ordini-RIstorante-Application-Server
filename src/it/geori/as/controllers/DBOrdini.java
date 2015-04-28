@@ -30,7 +30,7 @@ public class DBOrdini extends CacheManager {
 		COLUMN_ORDINE_TOTALE="totale_ordine",
 		COLUMN_ORDINE_STATO_ORDINE="stato_ordine",
 		COLUMN_ORDINE_SERVITO_DA="servito_da",
-		COLUMN_ORDINE_GUEST_CODE="guestCodeAccess";
+		COLUMN_ORDINE_GUEST_CODE="guestAccessCode";
 	
 	private final static String
 		TABLE_ORDINE_DETTAGLI_NAME="ordine_dettagli",
@@ -41,6 +41,12 @@ public class DBOrdini extends CacheManager {
 		COLUMN_ORDINE_DETTAGLI_UNITO_A="unito_a",
 		COLUMN_ORDINE_DETTAGLI_STATO="stato",
 		COLUMN_ORDINE_DETTAGLI_NOTE="note";
+	
+	private final static String
+		TABLE_ORDINE_MODIFICHE_NAME = "ordine_modifiche",
+		COLUMN_ORDINE_MODIFICHE_ID_DETTAGLIO = "ordine_dettaglio",
+		COLUMN_ORDINE_MODIFICHE_ID_INGREDIENTE = "ingrediente",
+		COLUMN_ORDINE_MODIFICHE_MODIFICA = "tipo";
 		
 	
 	private static DBOrdini instance;
@@ -172,7 +178,6 @@ public class DBOrdini extends CacheManager {
 		return res;
 	}
 	public Ordine getOrdine(int id){
-		//
 		Identifier order = getItem(id);
 		if(order!=null)
 			return (Ordine)order;
@@ -237,8 +242,9 @@ public class DBOrdini extends CacheManager {
 			st = con.prepareStatement(query);
 			rs = st.executeQuery();
 			ArrayList<OrdineDettagli> dettagli = new ArrayList<OrdineDettagli>();
+			ordine.addDettagliOrdine(dettagli);
 			while(rs.next()){
-				OrdineDettagli dett = parseOrdineDettaglio(con,rs);
+				OrdineDettagli dett = parseOrdineDettaglio(con,rs, ordine);
 				if(!isDettagliInserito(dettagli, dett.getID())){
 					dettagli.add(dett);
 				}
@@ -266,11 +272,45 @@ public class DBOrdini extends CacheManager {
 		}
 		return false;
 	}
-	private Map<String,ArrayList<Ingrediente>> getOrdineModifiche(Connection con, int id){
-		//TODO
-		return null;
+	private Map<String,ArrayList<Ingrediente>> getOrdineModifiche(Connection con, int id) {
+		String query = "SELECT * FROM "+TABLE_ORDINE_MODIFICHE_NAME+ " WHERE "+COLUMN_ORDINE_MODIFICHE_ID_DETTAGLIO+"="+id;
+		Map<String,ArrayList<Ingrediente>> res = new HashMap<>();
+		res.put("+", new ArrayList<Ingrediente>());
+		res.put("-", new ArrayList<Ingrediente>());
+		PreparedStatement st = null;
+		ResultSet rs = null;
+		try {
+			st = con.prepareStatement(query);
+			rs = st.executeQuery();
+			while(rs.next()){
+				int idIngr = rs.getInt(COLUMN_ORDINE_MODIFICHE_ID_INGREDIENTE);
+				String tipo = rs.getString(COLUMN_ORDINE_MODIFICHE_MODIFICA);
+				Ingrediente ingr = DBIngredienti.getInstance().getIngredienteByID(idIngr);
+				res.get(tipo).add(ingr);
+			}
+		}
+		catch (SQLException e) {
+			e.printStackTrace();
+		}
+		finally {
+			if(rs!=null)
+				try {
+					rs.close();
+				}
+				catch (SQLException e) {
+					e.printStackTrace();
+				}
+			if(st!=null)
+				try {
+					st.close();
+				}
+				catch (SQLException e) {
+					e.printStackTrace();
+				}
+		}
+		return res;
 	}
-	private OrdineDettagli parseOrdineDettaglio(Connection con, ResultSet rs) throws SQLException{
+	private OrdineDettagli parseOrdineDettaglio(Connection con, ResultSet rs, Ordine ord) throws SQLException{
 		int id = rs.getInt(COLUMN_ORDINE_DETTAGLI_ID);
 		int id_prodotto = rs.getInt(COLUMN_ORDINE_DETTAGLI_ID_PRODOTTO);
 		//int id_ordine = rs.getInt(COLUMN_ORDINE_DETTAGLI_ID_ORDINE);
@@ -282,7 +322,7 @@ public class DBOrdini extends CacheManager {
 		Prodotto prod = DBProdotti.getInstance().getProdottoByID(id_prodotto);
 	
 		if(unito_a!=null && unito_a>0){
-			OrdineDettagli dett = getOrdineDettaglio(unito_a);
+			OrdineDettagli dett = getOrdineDettaglio(ord, unito_a);
 			Map<String,ArrayList<Ingrediente>> modifiche = getOrdineModifiche(con,id);
 			dett.addModificheToProdotto(prod, modifiche);
 			return dett;
@@ -294,12 +334,18 @@ public class DBOrdini extends CacheManager {
 			return dett;
 		}
 	}
-	private OrdineDettagli getOrdineDettaglio(int id){
-		//TODO
+	private OrdineDettagli getOrdineDettaglio(Ordine ordine, int idDettaglio){
+		for(OrdineDettagli dett : ordine.getDettagliOrdine()){
+			if(dett.getID()==idDettaglio)
+				return dett;
+		}
 		return null;
 	}
 	private boolean isDettagliInserito(ArrayList<OrdineDettagli> list, int id){
-		//TODO
+		for(OrdineDettagli o : list){
+			if(o.getID()==id)
+				return true;
+		}
 		return false;
 	}
 }

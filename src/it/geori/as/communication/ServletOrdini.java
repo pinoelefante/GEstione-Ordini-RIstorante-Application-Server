@@ -24,6 +24,7 @@ public class ServletOrdini extends HttpServlet{
 		COMMAND_ADD_ORDER="order_add",
 		COMMAND_DEL_ORDER="order_del",
 		COMMAND_MOD_ORDER="order_modify",
+		COMMAND_LIST_ORDER="order_list",
 		COMMAND_ADD_TO_ORDER="order_add_to",
 		COMMAND_REMOVE_FROM_ORDER="order_remove_from",
 		COMMAND_CALC_ORDER="order_calc",
@@ -33,8 +34,8 @@ public class ServletOrdini extends HttpServlet{
 	@Override
 	protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 		String action = req.getParameter("action");
-		Document docRequest = null, docResponse = null;
-		String xml = req.getParameter("xml");
+		Document docResponse = null;
+		//String xml = req.getParameter("xml");
 		if(action!=null){
 			switch(action){
 				case COMMAND_ADD_ORDER:
@@ -57,6 +58,25 @@ public class ServletOrdini extends HttpServlet{
 					if(!AuthenticatedUsers.getInstance().isAuthenticated(req.getCookies())){
 						docResponse = XMLDocumentCreator.operationStatus(false, Localization.MESSAGGIO_ERRORE_NON_LOGGATO);
 						break;
+					}
+					break;
+				case COMMAND_LIST_ORDER:
+					if(!AuthenticatedUsers.getInstance().isAuthenticated(req.getCookies())){
+						docResponse = XMLDocumentCreator.operationStatus(false, Localization.MESSAGGIO_ERRORE_NON_LOGGATO);
+						break;
+					}
+					String idOrdine = req.getParameter("id");
+					if(idOrdine!=null){
+						try {
+							Integer idOrd = Integer.parseInt(idOrdine);
+							Ordine ordine = DBOrdini.getInstance().getOrdine(idOrd);
+							if(ordine!=null) {
+								docResponse = XMLDocumentCreator.listOrdine(ordine);
+							}
+						}
+						catch(Exception e){
+							e.printStackTrace();
+						}
 					}
 					break;
 				case COMMAND_MOD_ORDER:

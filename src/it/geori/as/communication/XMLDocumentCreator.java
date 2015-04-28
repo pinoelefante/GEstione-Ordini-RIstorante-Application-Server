@@ -3,6 +3,7 @@ package it.geori.as.communication;
 import it.geori.as.data.Ingrediente;
 import it.geori.as.data.Menu;
 import it.geori.as.data.Ordine;
+import it.geori.as.data.OrdineDettagli;
 import it.geori.as.data.Prodotto;
 import it.geori.as.data.ProdottoCategoria;
 import it.geori.as.data.Tavolo;
@@ -195,6 +196,13 @@ public class XMLDocumentCreator {
 		categoriaNode.setAttribute("id", categoria.getID()+"");
 		return categoriaNode;
 	}
+	public static Document listOrdine(Ordine o){
+		Element root = getBooleanElement(true, "");
+		Element ordine = elementOrdine(o);
+		root.addContent(ordine);
+		Document doc = new Document(root);
+		return doc;
+	}
 	private static Element elementOrdine(Ordine o){
 		Element ordine = new Element("ordine");
 		Element id = new Element("id");
@@ -204,9 +212,9 @@ public class XMLDocumentCreator {
 		Element coperti = new Element("coperti");
 		coperti.addContent(""+o.getCoperti());
 		Element data_creazione = new Element("data_creazione");
-		coperti.addContent(o.getDataCreazione());
+		data_creazione.addContent(o.getDataCreazione());
 		Element data_chiusura = new Element("data_chiusura");
-		coperti.addContent(o.getDataChiusura());
+		data_chiusura.addContent(o.getDataChiusura());
 		Element sconto = new Element("sconto");
 		sconto.addContent(""+o.getSconto());
 		Element totale = new Element("totale");
@@ -229,8 +237,57 @@ public class XMLDocumentCreator {
 		ordine.addContent(servito_da);
 		ordine.addContent(access_code);
 		
-		//TODO add dettagli ordine
+		Element dettagli = new Element("dettagli");
+		ordine.addContent(dettagli);
+		
+		ArrayList<OrdineDettagli> dett = o.getDettagliOrdine();
+		for(OrdineDettagli d : dett){
+			Element e = elementOrdineDettagli(d);
+			dettagli.addContent(e);
+		}
 		
 		return ordine;
+	}
+	private static Element elementOrdineDettagli(OrdineDettagli dett){
+		Element dettaglio = new Element("dettaglio");
+		
+		Element quant = new Element("quantita");
+		Element stato = new Element("stato");
+		Element note = new Element("note");
+		Element prodotto = new Element("list_prodotti");
+		
+		quant.addContent(dett.getQuantita()+"");
+		stato.addContent(dett.getStato()+"");
+		note.addContent(dett.getNote());
+		
+		Map<Prodotto, Map<String, ArrayList<Ingrediente>>> prodotti = dett.getProdotti();
+		for(Entry<Prodotto, Map<String, ArrayList<Ingrediente>>> d : prodotti.entrySet()){
+			Prodotto prod = d.getKey();
+			ArrayList<Ingrediente> conList = d.getValue().get("+");
+			ArrayList<Ingrediente> senzaList = d.getValue().get("-");
+			
+			Element p = elementProdotto(prod);
+			Element con = new Element("con");
+			Element senza = new Element("senza");
+			
+			for(int i = 0;i<conList.size();i++){
+				Ingrediente ing = conList.get(i);
+				Element ingr = elementIngrediente(ing);
+				con.addContent(ingr);
+			}
+			
+			for(int i = 0;i<senzaList.size();i++){
+				Ingrediente ing = senzaList.get(i);
+				Element ingr = elementIngrediente(ing);
+				senza.addContent(ingr);
+			}
+			p.addContent(con);
+			p.addContent(senza);
+			prodotto.addContent(p);
+		}
+		dettaglio.addContent(prodotto);
+		
+		
+		return dettaglio;
 	}
 }

@@ -25,6 +25,7 @@ public class Ordine implements Identifier{
 		setDataCreazione(creazione);
 		setDataChiusura(chiusura);
 		setGuestCode(guest);
+		setStatoOrdine(statoOrdine);
 		dettagli_ordine = new ArrayList<OrdineDettagli>();
 	}
 
@@ -136,5 +137,8 @@ public class Ordine implements Identifier{
 			}
 		}
 		return false;
+	}
+	public String toString(){
+		return "coperti:"+coperti+"";
 	}
 }
