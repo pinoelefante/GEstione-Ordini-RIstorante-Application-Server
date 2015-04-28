@@ -11,7 +11,8 @@ public class OrdineDettagli implements Identifier{
 		STATO_IN_CODA=0,
 		STATO_IN_PREPARAZIONE=1,
 		STATO_PREPARATO=2,
-		STATO_INGREDIENTI_NON_PRESENTI=3;
+		STATO_INGREDIENTI_NON_PRESENTI=3,
+		STATO_PAGATO = 4;
 	private int id;
 	private Map<Prodotto, Map<String,ArrayList<Ingrediente>>> prodotti;
 	private int quantita;

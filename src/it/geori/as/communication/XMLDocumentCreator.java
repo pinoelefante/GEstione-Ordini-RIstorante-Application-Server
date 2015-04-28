@@ -260,6 +260,10 @@ public class XMLDocumentCreator {
 		stato.addContent(dett.getStato()+"");
 		note.addContent(dett.getNote());
 		
+		dettaglio.addContent(quant);
+		dettaglio.addContent(stato);
+		dettaglio.addContent(note);
+		
 		Map<Prodotto, Map<String, ArrayList<Ingrediente>>> prodotti = dett.getProdotti();
 		for(Entry<Prodotto, Map<String, ArrayList<Ingrediente>>> d : prodotti.entrySet()){
 			Prodotto prod = d.getKey();

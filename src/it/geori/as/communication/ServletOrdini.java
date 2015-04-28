@@ -51,7 +51,10 @@ public class ServletOrdini extends HttpServlet{
 						Integer idServedBy = AuthenticatedUsers.getInstance().getIDUser(req.getCookies());
 						Ordine ordine = new Ordine(0, tavolo, coperti, idServedBy, "", "");
 						boolean res = DBOrdini.getInstance().addNewOrder(ordine);
-						//TODO
+						if(res)
+							docResponse = XMLDocumentCreator.listOrdine(ordine);
+						else
+							docResponse = XMLDocumentCreator.operationStatus(false, Localization.MESSAGGIO_ERRORE_UPDATE);
 					}
 					break;
 				case COMMAND_DEL_ORDER:
