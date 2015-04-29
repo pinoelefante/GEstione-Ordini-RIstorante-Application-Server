@@ -12,6 +12,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Savepoint;
 import java.sql.Statement;
+import java.sql.Timestamp;
 import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -49,6 +50,7 @@ public class DBOrdini extends CacheManager {
 		COLUMN_ORDINE_MODIFICHE_ID_INGREDIENTE = "ingrediente",
 		COLUMN_ORDINE_MODIFICHE_MODIFICA = "tipo";
 		
+	private final static long UN_GIORNO_MS = 60*60*24*1000;
 	
 	private static DBOrdini instance;
 	public static DBOrdini getInstance(){
@@ -192,6 +194,7 @@ public class DBOrdini extends CacheManager {
 				st = con.prepareStatement(query);
 				rs = st.executeQuery();
 				if(rs.next()){
+					/*
 					int id_ordine = rs.getInt(COLUMN_ORDINE_ID);
 					int tavolo = rs.getInt(COLUMN_ORDINE_TAVOLO);
 					int coperti = rs.getInt(COLUMN_ORDINE_COPERTI);
@@ -202,7 +205,8 @@ public class DBOrdini extends CacheManager {
 					int stato = rs.getInt(COLUMN_ORDINE_STATO_ORDINE);
 					int servitoDa = rs.getInt(COLUMN_ORDINE_SERVITO_DA);
 					String guestCode = rs.getString(COLUMN_ORDINE_GUEST_CODE);
-					Ordine ordine = new Ordine(id_ordine, tavolo, coperti, sconto, servitoDa, stato, totale, data_ordine, data_chiusura, guestCode);
+					*/
+					Ordine ordine = parseOrdine(rs);//new Ordine(id_ordine, tavolo, coperti, sconto, servitoDa, stato, totale, data_ordine, data_chiusura, guestCode);
 					if(getOrdineDettagli(con, ordine)){
 						addItemToCache(ordine);
 					}
@@ -310,6 +314,20 @@ public class DBOrdini extends CacheManager {
 				}
 		}
 		return res;
+	}
+	private Ordine parseOrdine(ResultSet rs) throws SQLException{
+		int id_ordine = rs.getInt(COLUMN_ORDINE_ID);
+		int tavolo = rs.getInt(COLUMN_ORDINE_TAVOLO);
+		int coperti = rs.getInt(COLUMN_ORDINE_COPERTI);
+		String data_ordine = rs.getString(COLUMN_ORDINE_DATA_ORDINE);
+		String data_chiusura = rs.getString(COLUMN_ORDINE_DATA_CHIUSURA);
+		int sconto = rs.getInt(COLUMN_ORDINE_SCONTO);
+		float totale = rs.getFloat(COLUMN_ORDINE_TOTALE);
+		int stato = rs.getInt(COLUMN_ORDINE_STATO_ORDINE);
+		int servitoDa = rs.getInt(COLUMN_ORDINE_SERVITO_DA);
+		String guestCode = rs.getString(COLUMN_ORDINE_GUEST_CODE);
+		Ordine ordine = new Ordine(id_ordine, tavolo, coperti, sconto, servitoDa, stato, totale, data_ordine, data_chiusura, guestCode);
+		return ordine;
 	}
 	private OrdineDettagli parseOrdineDettaglio(Connection con, ResultSet rs, Ordine ord) throws SQLException{
 		int id = rs.getInt(COLUMN_ORDINE_DETTAGLI_ID);
@@ -419,5 +437,253 @@ public class DBOrdini extends CacheManager {
 			DBConnectionPool.releaseConnection(con);
 		}
 		return res;
+	}
+	public boolean chiudiOrdine(int id){
+		Ordine ord = getOrdine(id);
+		if(setStatoOrdineDettagliAll(ord, Ordine.STATO_PAGATO)){
+			int lastStatus = ord.getStatoOrdine();
+			String lastGuestCode = ord.getGuestCode();
+			ord.setStatoOrdine(Ordine.STATO_PAGATO);
+			ord.setDataChiusura(new Timestamp(System.currentTimeMillis()).toString());
+			ord.setGuestCode(null);
+			if(updateOrdine(ord)){
+				removeItemFromCache(ord.getID());
+				return true;
+			}
+			else {
+				ord.setStatoOrdine(lastStatus);
+				ord.setGuestCode(lastGuestCode);
+			}
+		}
+		return false;
+	}
+	private boolean setStatoOrdineDettagliAll(Ordine o, int newStato){
+		String query = "UPDATE "+TABLE_ORDINE_DETTAGLI_NAME+" SET "+COLUMN_ORDINE_DETTAGLI_STATO+"="+newStato+" WHERE "+COLUMN_ORDINE_DETTAGLI_ID_ORDINE+"="+o.getID();
+		Connection con;
+		Savepoint sp;
+		try {
+			con = DBConnectionPool.getConnection();
+			sp = con.setSavepoint();
+		}
+		catch (SQLException e) {
+			e.printStackTrace();
+			return false;
+		}
+		boolean res = false;
+		try {
+			PreparedStatement st = con.prepareStatement(query);
+			res = st.executeUpdate()>0;
+			if(res){
+				con.commit();
+				for(OrdineDettagli dett : o.getDettagliOrdine()){
+					dett.setStato(newStato);
+				}
+			}
+			st.close();
+		}
+		catch (SQLException e) {
+			e.printStackTrace();
+			try {
+				con.rollback(sp);
+			}
+			catch (SQLException e1) {
+				e1.printStackTrace();
+			}
+		}
+		finally {
+			DBConnectionPool.releaseConnection(con);
+		}
+		return res;
+	}
+	public boolean updateOrdineDettaglio(OrdineDettagli o){
+		String query = "UPDATE "+TABLE_ORDINE_DETTAGLI_NAME+" SET "+COLUMN_ORDINE_DETTAGLI_QUANTITA+"="+o.getQuantita()+" "+
+				COLUMN_ORDINE_DETTAGLI_NOTE+"\""+o.getNote()+"\" "+COLUMN_ORDINE_DETTAGLI_STATO+"="+o.getStato();
+		Connection con;
+		Savepoint sp;
+		try {
+			con = DBConnectionPool.getConnection();
+			sp = con.setSavepoint();
+		}
+		catch (SQLException e) {
+			e.printStackTrace();
+			return false;
+		}
+		boolean res = false;
+		try {
+			PreparedStatement st = con.prepareStatement(query);
+			res = st.executeUpdate()>0;
+			st.close();
+		}
+		catch (SQLException e) {
+			e.printStackTrace();
+			try {
+				con.rollback(sp);
+			}
+			catch (SQLException e1) {
+				e1.printStackTrace();
+			}
+		}
+		finally {
+			DBConnectionPool.releaseConnection(con);
+		}
+		return res;
+	}
+	public boolean removeOrdine(int id){
+		String query = "DELETE FROM "+TABLE_ORDINE_NAME+" WHERE "+COLUMN_ORDINE_ID+"="+id;
+		Connection con;
+		Savepoint sp;
+		try {
+			con = DBConnectionPool.getConnection();
+			sp = con.setSavepoint();
+		}
+		catch (SQLException e) {
+			e.printStackTrace();
+			return false;
+		}
+		boolean res = false;
+		try {
+			PreparedStatement st = con.prepareStatement(query);
+			res = st.executeUpdate()>0;
+			if(res){
+				con.commit();
+				removeItemFromCache(id);
+			}
+			st.close();
+		}
+		catch (SQLException e) {
+			e.printStackTrace();
+			try {
+				con.rollback(sp);
+			}
+			catch (SQLException e1) {
+				e1.printStackTrace();
+			}
+		}
+		finally {
+			DBConnectionPool.releaseConnection(con);
+		}
+		return res;
+	}
+	public ArrayList<Ordine> getOrdiniUltime24OreAperti(){
+		String query = "SELECT * FROM "+TABLE_ORDINE_NAME+" WHERE "+COLUMN_ORDINE_STATO_ORDINE+"!="+Ordine.STATO_PAGATO
+				+" AND "+COLUMN_ORDINE_DATA_ORDINE+">"+(new Timestamp(System.currentTimeMillis()-UN_GIORNO_MS))+" ORDER BY "+COLUMN_ORDINE_DATA_ORDINE+" DESC";
+		Connection con = null;
+		PreparedStatement st = null;
+		ResultSet rs = null;
+		ArrayList<Ordine> ordini = new ArrayList<>();
+		try {
+			con = DBConnectionPool.getConnection();
+			st = con.prepareStatement(query);
+			rs = st.executeQuery();
+			while(rs.next()){
+				Ordine o = parseOrdine(rs);
+				ordini.add(o);
+			}
+			return ordini;
+		}
+		catch (SQLException e) {
+			e.printStackTrace();
+		}
+		finally {
+			if(rs!=null)
+				try {
+					rs.close();
+				}
+				catch (SQLException e) {
+					e.printStackTrace();
+				}
+			if(st!=null)
+				try {
+					st.close();
+				}
+				catch (SQLException e) {
+					e.printStackTrace();
+				}
+			DBConnectionPool.releaseConnection(con);
+		}
+		return ordini;
+	}
+	public ArrayList<Ordine> getOrdiniUltime24Ore(){
+		String query = "SELECT * FROM "+TABLE_ORDINE_NAME+" WHERE "+COLUMN_ORDINE_DATA_ORDINE+">"+(new Timestamp(System.currentTimeMillis()-UN_GIORNO_MS))+" ORDER BY "+COLUMN_ORDINE_DATA_ORDINE+" DESC";
+		Connection con = null;
+		PreparedStatement st = null;
+		ResultSet rs = null;
+		ArrayList<Ordine> ordini = new ArrayList<>();
+		try {
+			con = DBConnectionPool.getConnection();
+			st = con.prepareStatement(query);
+			rs = st.executeQuery();
+			while(rs.next()){
+				Ordine o = parseOrdine(rs);
+				ordini.add(o);
+			}
+			return ordini;
+		}
+		catch (SQLException e) {
+			e.printStackTrace();
+		}
+		finally {
+			if(rs!=null)
+				try {
+					rs.close();
+				}
+				catch (SQLException e) {
+					e.printStackTrace();
+				}
+			if(st!=null)
+				try {
+					st.close();
+				}
+				catch (SQLException e) {
+					e.printStackTrace();
+				}
+			DBConnectionPool.releaseConnection(con);
+		}
+		return ordini;
+	}
+	public ArrayList<Ordine> getOrdineByTavolo(int tavolo){
+		String query = "SELECT * FROM "+TABLE_ORDINE_NAME+" WHERE "+COLUMN_ORDINE_TAVOLO+"="+tavolo+/*" AND "+COLUMN_ORDINE_STATO_ORDINE+"!="+Ordine.STATO_PAGATO+*/" ORDER BY "+COLUMN_ORDINE_DATA_ORDINE+" DESC LIMIT 3";
+		Connection con = null;
+		PreparedStatement st = null;
+		ResultSet rs = null;
+		ArrayList<Ordine> ordini = new ArrayList<>();
+		try {
+			con = DBConnectionPool.getConnection();
+			st = con.prepareStatement(query);
+			rs = st.executeQuery();
+			while(rs.next()){
+				Ordine o = parseOrdine(rs);
+				if(!getOrdineDettagli(con, o)){
+					System.err.println("getOrdineByTavolo("+tavolo+") -> getOrdineDettagli()");
+				}
+				ordini.add(o);
+			}
+		}
+		catch (SQLException e) {
+			e.printStackTrace();
+		}
+		finally {
+			if(rs!=null)
+				try {
+					rs.close();
+				}
+				catch (SQLException e) {
+					e.printStackTrace();
+				}
+			if(st!=null)
+				try {
+					st.close();
+				}
+				catch (SQLException e) {
+					e.printStackTrace();
+				}
+			DBConnectionPool.releaseConnection(con);
+		}
+		return ordini;
+	}
+	public boolean chiudiOrdiniDiOggi(){
+		//TODO
+		//fare con query o con getOrdini24OreAperti???
+		return false;
 	}
 }
