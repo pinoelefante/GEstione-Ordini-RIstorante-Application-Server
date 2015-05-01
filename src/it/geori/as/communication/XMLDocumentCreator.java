@@ -290,36 +290,7 @@ public class XMLDocumentCreator {
 			p.addContent(senza);
 			prodotto.addContent(p);
 		}
-		/*
-		Map<Prodotto, Map<String, ArrayList<Ingrediente>>> prodotti = dett.getProdotti();
-		for(Entry<Prodotto, Map<String, ArrayList<Ingrediente>>> d : prodotti.entrySet()){
-			Prodotto prod = d.getKey();
-			ArrayList<Ingrediente> conList = d.getValue().get("+");
-			ArrayList<Ingrediente> senzaList = d.getValue().get("-");
-			
-			Element p = elementProdotto(prod);
-			Element con = new Element("con");
-			Element senza = new Element("senza");
-			
-			for(int i = 0;i<conList.size();i++){
-				Ingrediente ing = conList.get(i);
-				Element ingr = elementIngrediente(ing);
-				con.addContent(ingr);
-			}
-			
-			for(int i = 0;i<senzaList.size();i++){
-				Ingrediente ing = senzaList.get(i);
-				Element ingr = elementIngrediente(ing);
-				senza.addContent(ingr);
-			}
-			p.addContent(con);
-			p.addContent(senza);
-			prodotto.addContent(p);
-		}
-		*/
 		dettaglio.addContent(prodotto);
-		
-		
 		return dettaglio;
 	}
 }

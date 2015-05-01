@@ -22,6 +22,9 @@ public class Tavolo implements Identifier{
 	public double getCostoCoperto() {
 		return costo_coperto;
 	}
+	public void setCostoCoperto(double c){
+		costo_coperto = c;
+	}
 	public String getNomeTavolo() {
 		return nome_tavolo;
 	}

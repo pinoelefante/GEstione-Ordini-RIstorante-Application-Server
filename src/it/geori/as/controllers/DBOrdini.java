@@ -5,6 +5,7 @@ import it.geori.as.data.Ingrediente;
 import it.geori.as.data.Ordine;
 import it.geori.as.data.OrdineDettagli;
 import it.geori.as.data.Prodotto;
+import it.geori.as.data.Tavolo;
 import it.geori.as.data.interfaces.Identifier;
 
 import java.sql.Connection;
@@ -242,7 +243,6 @@ public class DBOrdini extends CacheManager {
 					dettagli.add(dett);
 				}
 			}
-			//TODO load modifiche
 			return true;
 		}
 		catch (SQLException e) {
@@ -339,13 +339,6 @@ public class DBOrdini extends CacheManager {
 			d.addToAdd(add);
 			d.addToRem(del);
 			return dett;
-			/*
-			dett.addProdotto(prod);
-			Map<String,ArrayList<Ingrediente>> modifiche = getOrdineModifiche(con,id);
-			dett.addModificheToProdotto(prod, modifiche.get("+"),"+");
-			dett.addModificheToProdotto(prod, modifiche.get("-"),"-");
-			return dett;
-			*/
 		}
 		else {
 			OrdineDettagli dett = new OrdineDettagli(id, quantita, stato, note);
@@ -356,13 +349,6 @@ public class DBOrdini extends CacheManager {
 			ArrayList<Ingrediente> del = modifiche.get("-");
 			d.addToAdd(add);
 			d.addToRem(del);
-			/*
-			OrdineDettagli dett = new OrdineDettagli(id, quantita, stato, note,prod);
-			Map<String,ArrayList<Ingrediente>> modifiche = getOrdineModifiche(con,id);
-			dett.addModificheToProdotto(prod, modifiche.get("+"),"+");
-			dett.addModificheToProdotto(prod, modifiche.get("-"),"-");
-			return dett;
-			*/
 			return dett;
 		}
 	
@@ -400,27 +386,29 @@ public class DBOrdini extends CacheManager {
 			parziale = (parziale/numProd)*quantita;
 			totale += parziale;
 		}
-		totale = totale - ((totale/100)*ordine.getSconto());
 		return totale;
 	}
 	public boolean calcolaTotale(int id){
 		Ordine ordine = getOrdine(id);
-		double totale = calcolaTotaleOrdine(ordine);
-		ordine.setCostoTotale(totale);
-		return updateOrdine(ordine);
+		return calcolaTotale(ordine);
 	}
 	public boolean calcolaTotale(Ordine o){
-		double totale = calcolaTotaleOrdine(o);
+		double totale = calcolaTotaleOrdine(o)+calcolaTotaleCoperti(o);
+		totale = totale - ((totale/100)*o.getSconto());
 		o.setCostoTotale(totale);
 		return updateOrdine(o);
 	}
+	private double calcolaTotaleCoperti(Ordine o){
+		Tavolo tavolo = (Tavolo) DBTavoli.getInstance().getItem(o.getID());
+		return o.getCoperti()*tavolo.getCostoCoperto();
+	}
 	public boolean updateOrdine(Ordine o){
 		String query = "UPDATE "+TABLE_ORDINE_NAME+" SET "+
-				COLUMN_ORDINE_COPERTI+"="+o.getCoperti()+ " "+
-				COLUMN_ORDINE_DATA_CHIUSURA+"=\""+o.getDataChiusura()+"\" "+
-				COLUMN_ORDINE_SCONTO+"="+o.getSconto()+" "+
-				COLUMN_ORDINE_STATO_ORDINE+"="+o.getStatoOrdine()+" "+
-				COLUMN_ORDINE_TAVOLO+"="+o.getTavolo()+" "+
+				COLUMN_ORDINE_COPERTI+"="+o.getCoperti()+ ", "+
+				(o.getDataChiusura()!=null?COLUMN_ORDINE_DATA_CHIUSURA+"=\""+o.getDataChiusura()+"\", ":"")+
+				COLUMN_ORDINE_SCONTO+"="+o.getSconto()+", "+
+				COLUMN_ORDINE_STATO_ORDINE+"="+o.getStatoOrdine()+", "+
+				COLUMN_ORDINE_TAVOLO+"="+o.getTavolo()+", "+
 				COLUMN_ORDINE_TOTALE+"="+o.getCostoTotale()+" "+
 				"WHERE "+COLUMN_ORDINE_ID+"="+o.getID();
 		Connection con;

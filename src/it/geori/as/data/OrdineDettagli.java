@@ -34,7 +34,6 @@ public class OrdineDettagli implements Identifier{
 		if(getDettaglioByProdotto(d.getProdotto())==null)
 			dettagli.add(d);
 	}
-	/*
 	public void addModificheToProdotto(Prodotto p, ArrayList<Ingrediente> mod, String tipo){
 		Dettaglio d = getDettaglioByProdotto(p);
 		if(d==null)
@@ -48,7 +47,6 @@ public class OrdineDettagli implements Identifier{
     			break;
 		}
 	}
-	*/
 	public void setQuantita(int newQuantita){
 		if(newQuantita==0){
 			dettagli.clear();
