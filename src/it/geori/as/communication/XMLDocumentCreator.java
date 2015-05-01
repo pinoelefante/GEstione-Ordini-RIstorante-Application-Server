@@ -1,5 +1,6 @@
 package it.geori.as.communication;
 
+import it.geori.as.data.Dettaglio;
 import it.geori.as.data.Ingrediente;
 import it.geori.as.data.Menu;
 import it.geori.as.data.Ordine;
@@ -264,6 +265,32 @@ public class XMLDocumentCreator {
 		dettaglio.addContent(stato);
 		dettaglio.addContent(note);
 		
+		ArrayList<Dettaglio> prodotti = dett.getProdotti();
+		for(Dettaglio d : prodotti){
+			Prodotto prod = d.getProdotto();
+			ArrayList<Ingrediente> conList = d.getToAdd();
+			ArrayList<Ingrediente> senzaList = d.getToRem();
+			
+			Element p = elementProdotto(prod);
+			Element con = new Element("con");
+			Element senza = new Element("senza");
+			
+			for(int i = 0;i<conList.size();i++){
+				Ingrediente ing = conList.get(i);
+				Element ingr = elementIngrediente(ing);
+				con.addContent(ingr);
+			}
+			
+			for(int i = 0;i<senzaList.size();i++){
+				Ingrediente ing = senzaList.get(i);
+				Element ingr = elementIngrediente(ing);
+				senza.addContent(ingr);
+			}
+			p.addContent(con);
+			p.addContent(senza);
+			prodotto.addContent(p);
+		}
+		/*
 		Map<Prodotto, Map<String, ArrayList<Ingrediente>>> prodotti = dett.getProdotti();
 		for(Entry<Prodotto, Map<String, ArrayList<Ingrediente>>> d : prodotti.entrySet()){
 			Prodotto prod = d.getKey();
@@ -289,6 +316,7 @@ public class XMLDocumentCreator {
 			p.addContent(senza);
 			prodotto.addContent(p);
 		}
+		*/
 		dettaglio.addContent(prodotto);
 		
 		

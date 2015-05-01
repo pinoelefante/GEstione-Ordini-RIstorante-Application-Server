@@ -1,5 +1,6 @@
 package it.geori.as.controllers;
 
+import it.geori.as.data.Dettaglio;
 import it.geori.as.data.Ingrediente;
 import it.geori.as.data.Ordine;
 import it.geori.as.data.OrdineDettagli;
@@ -18,7 +19,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Map.Entry;
 
 public class DBOrdini extends CacheManager {
 	private final static String 
@@ -194,19 +194,7 @@ public class DBOrdini extends CacheManager {
 				st = con.prepareStatement(query);
 				rs = st.executeQuery();
 				if(rs.next()){
-					/*
-					int id_ordine = rs.getInt(COLUMN_ORDINE_ID);
-					int tavolo = rs.getInt(COLUMN_ORDINE_TAVOLO);
-					int coperti = rs.getInt(COLUMN_ORDINE_COPERTI);
-					String data_ordine = rs.getString(COLUMN_ORDINE_DATA_ORDINE);
-					String data_chiusura = rs.getString(COLUMN_ORDINE_DATA_CHIUSURA);
-					int sconto = rs.getInt(COLUMN_ORDINE_SCONTO);
-					float totale = rs.getFloat(COLUMN_ORDINE_TOTALE);
-					int stato = rs.getInt(COLUMN_ORDINE_STATO_ORDINE);
-					int servitoDa = rs.getInt(COLUMN_ORDINE_SERVITO_DA);
-					String guestCode = rs.getString(COLUMN_ORDINE_GUEST_CODE);
-					*/
-					Ordine ordine = parseOrdine(rs);//new Ordine(id_ordine, tavolo, coperti, sconto, servitoDa, stato, totale, data_ordine, data_chiusura, guestCode);
+					Ordine ordine = parseOrdine(rs);
 					if(getOrdineDettagli(con, ordine)){
 						addItemToCache(ordine);
 					}
@@ -254,6 +242,7 @@ public class DBOrdini extends CacheManager {
 					dettagli.add(dett);
 				}
 			}
+			//TODO load modifiche
 			return true;
 		}
 		catch (SQLException e) {
@@ -339,19 +328,44 @@ public class DBOrdini extends CacheManager {
 		String note = rs.getString(COLUMN_ORDINE_DETTAGLI_NOTE);
 		
 		Prodotto prod = DBProdotti.getInstance().getProdottoByID(id_prodotto);
-	
+		
 		if(unito_a!=null && unito_a>0){
 			OrdineDettagli dett = getOrdineDettaglio(ord, unito_a);
+			Dettaglio d = new Dettaglio(id,prod,stato);
+			dett.addDettaglio(d);
 			Map<String,ArrayList<Ingrediente>> modifiche = getOrdineModifiche(con,id);
-			dett.addModificheToProdotto(prod, modifiche);
+			ArrayList<Ingrediente> add = modifiche.get("+");
+			ArrayList<Ingrediente> del = modifiche.get("-");
+			d.addToAdd(add);
+			d.addToRem(del);
 			return dett;
+			/*
+			dett.addProdotto(prod);
+			Map<String,ArrayList<Ingrediente>> modifiche = getOrdineModifiche(con,id);
+			dett.addModificheToProdotto(prod, modifiche.get("+"),"+");
+			dett.addModificheToProdotto(prod, modifiche.get("-"),"-");
+			return dett;
+			*/
 		}
 		else {
-			Map<Prodotto, Map<String,ArrayList<Ingrediente>>> map = new HashMap<>();
-			map.put(prod, getOrdineModifiche(con,id));
-			OrdineDettagli dett = new OrdineDettagli(id, quantita, stato, note, map);
+			OrdineDettagli dett = new OrdineDettagli(id, quantita, stato, note);
+			Dettaglio d = new Dettaglio(id, prod, stato);
+			dett.addDettaglio(d);
+			Map<String,ArrayList<Ingrediente>> modifiche = getOrdineModifiche(con,id);
+			ArrayList<Ingrediente> add = modifiche.get("+");
+			ArrayList<Ingrediente> del = modifiche.get("-");
+			d.addToAdd(add);
+			d.addToRem(del);
+			/*
+			OrdineDettagli dett = new OrdineDettagli(id, quantita, stato, note,prod);
+			Map<String,ArrayList<Ingrediente>> modifiche = getOrdineModifiche(con,id);
+			dett.addModificheToProdotto(prod, modifiche.get("+"),"+");
+			dett.addModificheToProdotto(prod, modifiche.get("-"),"-");
+			return dett;
+			*/
 			return dett;
 		}
+	
 	}
 	private OrdineDettagli getOrdineDettaglio(Ordine ordine, int idDettaglio){
 		for(OrdineDettagli dett : ordine.getDettagliOrdine()){
@@ -367,32 +381,38 @@ public class DBOrdini extends CacheManager {
 		}
 		return false;
 	}
-	private double calcolaTotale(Ordine ordine){
+	private double calcolaTotaleOrdine(Ordine ordine){
 		double totale = 0f;
-		for(OrdineDettagli od : ordine.getDettagliOrdine()){
-			Map<Prodotto,Map<String,ArrayList<Ingrediente>>> prodotti = od.getProdotti();
-			int divisioneOrdine = prodotti.size();
+		for(OrdineDettagli dett : ordine.getDettagliOrdine()){
+			ArrayList<Dettaglio> listProdotti = dett.getProdotti();
+			int numProd = listProdotti.size();
+			int quantita = dett.getQuantita();
 			float parziale = 0f;
-			int quantita = od.getQuantita();
-			for(Entry<Prodotto, Map<String, ArrayList<Ingrediente>>> dett : prodotti.entrySet()){
-				parziale += dett.getKey().getPrezzo();
-				for(Ingrediente ingr : dett.getValue().get("+")){
+			for(Dettaglio d : listProdotti){
+				parziale += d.getProdotto().getPrezzo();
+				for(Ingrediente ingr : d.getToAdd()){
 					parziale+=ingr.getPrezzo();
 				}
-				for(Ingrediente ingr : dett.getValue().get("-")){
+				for(Ingrediente ingr : d.getToRem()){
 					parziale-=ingr.getPrezzo();
 				}
 			}
-			parziale = (parziale/divisioneOrdine)*quantita;
+			parziale = (parziale/numProd)*quantita;
 			totale += parziale;
 		}
+		totale = totale - ((totale/100)*ordine.getSconto());
 		return totale;
 	}
 	public boolean calcolaTotale(int id){
 		Ordine ordine = getOrdine(id);
-		double totale = calcolaTotale(ordine);
+		double totale = calcolaTotaleOrdine(ordine);
 		ordine.setCostoTotale(totale);
 		return updateOrdine(ordine);
+	}
+	public boolean calcolaTotale(Ordine o){
+		double totale = calcolaTotaleOrdine(o);
+		o.setCostoTotale(totale);
+		return updateOrdine(o);
 	}
 	public boolean updateOrdine(Ordine o){
 		String query = "UPDATE "+TABLE_ORDINE_NAME+" SET "+
@@ -685,5 +705,140 @@ public class DBOrdini extends CacheManager {
 		//TODO
 		//fare con query o con getOrdini24OreAperti???
 		return false;
+	}
+	public boolean addDettagliOrdineToOrdine(ArrayList<OrdineDettagli> detts, int id){
+		Ordine ordine = getOrdine(id);
+		Connection con = null;
+		Savepoint sp = null;
+		try {
+			con = DBConnectionPool.getConnection();
+			sp = con.setSavepoint();
+		}
+		catch (SQLException e) {
+			e.printStackTrace();
+			return false;
+		}
+		try {
+			for(OrdineDettagli d : detts){
+				if(addOrdineDettagli(con, ordine, d) && addOrdineModifiche(con, d)){
+					ordine.addDettaglioOrdine(d);
+				}
+				else {
+					System.err.println("Errore durante l'inserimento");
+					con.rollback(sp);
+					return false;
+				}
+			}
+			con.commit();
+			return true;
+		}
+		catch(SQLException e){
+			e.printStackTrace();
+			try {
+				con.rollback(sp);
+			}
+			catch (SQLException e1) {
+				e1.printStackTrace();
+			}
+		}
+		finally {
+			DBConnectionPool.releaseConnection(con);
+		}
+		return false;
+	}
+	private boolean addOrdineDettagli(Connection con, Ordine ord, OrdineDettagli dett) throws SQLException{
+		ArrayList<String> listQueryOrdineDettagli = addOrdineDettagliQuery(ord, dett);
+		PreparedStatement st = null;
+		Integer unito_a = null;
+		try {
+			int i=0;
+    		for(String query : listQueryOrdineDettagli){
+    			if(i==0){
+    				st = con.prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
+    				if(st.executeUpdate()<=0){
+        				throw new SQLException();
+        			}
+    				else {
+    					ResultSet gk = st.getGeneratedKeys();
+    					if(gk.next()){
+    						unito_a = gk.getInt(1);
+    						dett.setId(unito_a);
+    						dett.getProdotti().get(i).setId(unito_a);
+    					}
+    				}
+    			}
+    			else {
+    				st = con.prepareStatement(query.replace("<UNITO_A_PLACEHOLDER>", unito_a+""), Statement.RETURN_GENERATED_KEYS);
+    				if(st.executeUpdate()<=0){
+    					throw new SQLException();
+        			}
+    				else {
+    					ResultSet gk = st.getGeneratedKeys();
+    					int id;
+    					if(gk.next()){
+    						id = gk.getInt(1);
+    						dett.getProdotti().get(i).setId(id);
+    					}
+    				}
+    			}
+    			i++;
+    		}
+		}
+		finally {
+			if(st!=null)
+				st.close();
+		}
+		return true;
+	}
+	private ArrayList<String> addOrdineDettagliQuery(Ordine o, OrdineDettagli dett){
+		int i=0;
+		ArrayList<String> ret = new ArrayList<String>(dett.getProdotti().size()); 
+		for(Dettaglio d : dett.getProdotti()){
+			if(i==0){
+				ret.add("INSERT INTO "+TABLE_ORDINE_DETTAGLI_NAME+" ("+COLUMN_ORDINE_DETTAGLI_ID_ORDINE+","+COLUMN_ORDINE_DETTAGLI_ID_PRODOTTO+","+COLUMN_ORDINE_DETTAGLI_NOTE+","+COLUMN_ORDINE_DETTAGLI_QUANTITA+") VALUES "+
+						"("+o.getID()+","+d.getProdotto().getID()+","+dett.getNote()+","+dett.getQuantita()+")");
+			}
+			else {
+				ret.add("INSERT INTO "+TABLE_ORDINE_DETTAGLI_NAME+" ("+COLUMN_ORDINE_DETTAGLI_ID_ORDINE+","+COLUMN_ORDINE_DETTAGLI_ID_PRODOTTO+","+COLUMN_ORDINE_DETTAGLI_UNITO_A+") VALUES "+
+						"("+o.getID()+","+d.getProdotto().getID()+",<UNITO_A_PLACEHOLDER>)");
+			}
+			i++;
+		}
+		return ret;
+	}
+	private boolean addOrdineModifiche(Connection con, OrdineDettagli dett) throws SQLException{
+		String query = addOrdineModificheQuery(dett);
+		if(query.isEmpty())
+			return true;
+		PreparedStatement st = con.prepareStatement(query);
+		return st.executeUpdate()>0;
+	}
+	private String addOrdineModificheQuery(OrdineDettagli dett){
+		ArrayList<Dettaglio> dettagli = dett.getProdotti();
+		int numQueries = 0;
+		String query = "INSERT INTO "+TABLE_ORDINE_MODIFICHE_NAME+" ("+COLUMN_ORDINE_MODIFICHE_ID_INGREDIENTE+","+COLUMN_ORDINE_MODIFICHE_ID_DETTAGLIO+","+COLUMN_ORDINE_MODIFICHE_MODIFICA+") VALUES ";
+		for(Dettaglio d : dettagli){
+			ArrayList<Ingrediente> add = d.getToAdd();
+			ArrayList<Ingrediente> rem = d.getToRem();
+			for(Ingrediente ingr : add){
+				String values = "("+ingr.getID()+","+d.getId()+"\"+\")";
+				if(numQueries>0){
+					query+=",";
+				}
+				query+=values;
+				numQueries++;
+			}
+			for(Ingrediente ingr : rem){
+				String values = "("+ingr.getID()+","+d.getId()+"\"-\")";
+				if(numQueries>0){
+					query+=",";
+				}
+				query+=values;
+				numQueries++;
+			}
+		}
+		if(numQueries==0)
+			return "";
+		return query;
 	}
 }

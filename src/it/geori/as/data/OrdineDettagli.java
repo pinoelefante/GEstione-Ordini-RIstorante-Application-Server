@@ -3,8 +3,6 @@ package it.geori.as.data;
 import it.geori.as.data.interfaces.Identifier;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
 
 public class OrdineDettagli implements Identifier{
 	public final static int 
@@ -14,42 +12,46 @@ public class OrdineDettagli implements Identifier{
 		STATO_INGREDIENTI_NON_PRESENTI=3,
 		STATO_PAGATO = 4;
 	private int id;
-	private Map<Prodotto, Map<String,ArrayList<Ingrediente>>> prodotti;
+	private ArrayList<Dettaglio> dettagli;
 	private int quantita;
 	private String note;
 	private int stato;
 	
-	public OrdineDettagli(int id, int quantita, int stato, String note, Map<Prodotto, Map<String,ArrayList<Ingrediente>>> prodotti){
+	public OrdineDettagli(int id, int quantita, int stato, String note){
 		this.id = id;
 		this.quantita = quantita;
 		this.stato = stato;
 		this.note = note;
-		if(prodotti!=null)
-			this.prodotti = prodotti;
-		else
-			prodotti = new HashMap<Prodotto, Map<String,ArrayList<Ingrediente>>>();
+		this.dettagli = new ArrayList<Dettaglio>();
 	}
-	public OrdineDettagli(Prodotto prod){
-		prodotti = new HashMap<Prodotto, Map<String,ArrayList<Ingrediente>>>();
-		Map<String,ArrayList<Ingrediente>> modifiche = new HashMap<String, ArrayList<Ingrediente>>(2);
-		prodotti.put(prod, modifiche);
-	}
-	public Map<Prodotto, Map<String, ArrayList<Ingrediente>>> getProdotti() {
-		return prodotti;
+	public ArrayList<Dettaglio> getProdotti() {
+		return dettagli;
 	}
 	public void setId(int id) {
 		this.id = id;
 	}
-	public void addProdotto(Prodotto p){
-		Map<String,ArrayList<Ingrediente>> modifiche = new HashMap<String, ArrayList<Ingrediente>>(2);
-		prodotti.put(p, modifiche);
+	public void addDettaglio(Dettaglio d){
+		if(getDettaglioByProdotto(d.getProdotto())==null)
+			dettagli.add(d);
 	}
-	public void addModificheToProdotto(Prodotto p, Map<String, ArrayList<Ingrediente>> mod){
-		prodotti.put(p, mod);
+	/*
+	public void addModificheToProdotto(Prodotto p, ArrayList<Ingrediente> mod, String tipo){
+		Dettaglio d = getDettaglioByProdotto(p);
+		if(d==null)
+			return;
+		switch(tipo){
+    		case "+":
+    			d.addToAdd(mod);
+    			break;
+    		case "-":
+    			d.addToRem(mod);
+    			break;
+		}
 	}
+	*/
 	public void setQuantita(int newQuantita){
 		if(newQuantita==0){
-			prodotti.clear();
+			dettagli.clear();
 			quantita = 0;
 		}
 		else
@@ -70,7 +72,10 @@ public class OrdineDettagli implements Identifier{
 	}
 	public void ingredientiToRemove(Prodotto p, Ingrediente ingr){
 		if(isToRemove(p, ingr)){
-			ArrayList<Ingrediente> l=prodotti.get(p).get("-");
+			Dettaglio d = getDettaglioByProdotto(p);
+			if(d==null)
+				return;
+			ArrayList<Ingrediente> l=d.getToRem();
 			for(int i=0;i<l.size();i++){
 				if(l.get(i).getID()==ingr.getID()){
 					l.remove(i);
@@ -79,8 +84,18 @@ public class OrdineDettagli implements Identifier{
 			}	
 		}
 	}
+	public Dettaglio getDettaglioByProdotto(Prodotto p){
+		for(int i=0;i<dettagli.size();i++){
+			if(dettagli.get(i).getId()==p.getID())
+				return dettagli.get(i);
+		}
+		return null;
+	}
 	private boolean isToRemove(Prodotto p, Ingrediente ingr){
-		ArrayList<Ingrediente> l=prodotti.get(p).get("-");
+		Dettaglio d = getDettaglioByProdotto(p);
+		if(d==null)
+			return false;
+		ArrayList<Ingrediente> l=d.getToRem();
 		for(int i=0;i<l.size();i++){
 			if(l.get(i).getID()==ingr.getID())
 				return true;
@@ -89,12 +104,18 @@ public class OrdineDettagli implements Identifier{
 	}
 	public void ingredientiToAdd(Prodotto p, Ingrediente ingr){
 		if(isToAdd(p, ingr)){
-			ArrayList<Ingrediente> l=prodotti.get(p).get("+");
+			Dettaglio d = getDettaglioByProdotto(p);
+			if(d==null)
+				return;
+			ArrayList<Ingrediente> l=d.getToAdd();
 			l.add(ingr);	
 		}
 	}
 	private boolean isToAdd(Prodotto p, Ingrediente ingr){
-		ArrayList<Ingrediente> l=prodotti.get(p).get("+");
+		Dettaglio d = getDettaglioByProdotto(p);
+		if(d==null)
+			return false;
+		ArrayList<Ingrediente> l=d.getToAdd();
 		for(int i=0;i<l.size();i++){
 			if(l.get(i).getID()==ingr.getID())
 				return false;
