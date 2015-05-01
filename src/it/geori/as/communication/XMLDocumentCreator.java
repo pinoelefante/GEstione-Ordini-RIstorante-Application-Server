@@ -220,6 +220,8 @@ public class XMLDocumentCreator {
 		sconto.addContent(""+o.getSconto());
 		Element totale = new Element("totale");
 		totale.addContent(""+o.getCostoTotale());
+		Element proCapite = new Element("costoPersona");
+		proCapite.addContent(""+(o.getCostoTotale()/o.getCoperti()));
 		Element stato_ordine = new Element("stato_ordine");
 		stato_ordine.addContent(""+o.getStatoOrdine());
 		Element servito_da = new Element("servito_da");
@@ -234,6 +236,7 @@ public class XMLDocumentCreator {
 		ordine.addContent(data_chiusura);
 		ordine.addContent(sconto);
 		ordine.addContent(totale);
+		ordine.addContent(proCapite);
 		ordine.addContent(stato_ordine);
 		ordine.addContent(servito_da);
 		ordine.addContent(access_code);

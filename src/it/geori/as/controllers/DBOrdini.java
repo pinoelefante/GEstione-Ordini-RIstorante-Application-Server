@@ -405,11 +405,12 @@ public class DBOrdini extends CacheManager {
 	public boolean updateOrdine(Ordine o){
 		String query = "UPDATE "+TABLE_ORDINE_NAME+" SET "+
 				COLUMN_ORDINE_COPERTI+"="+o.getCoperti()+ ", "+
-				(o.getDataChiusura()!=null?COLUMN_ORDINE_DATA_CHIUSURA+"=\""+o.getDataChiusura()+"\", ":"")+
+				(o.getDataChiusura()!=null?COLUMN_ORDINE_DATA_CHIUSURA+"=\""+o.getDataChiusura()+"\", ":null)+
 				COLUMN_ORDINE_SCONTO+"="+o.getSconto()+", "+
 				COLUMN_ORDINE_STATO_ORDINE+"="+o.getStatoOrdine()+", "+
 				COLUMN_ORDINE_TAVOLO+"="+o.getTavolo()+", "+
-				COLUMN_ORDINE_TOTALE+"="+o.getCostoTotale()+" "+
+				COLUMN_ORDINE_TOTALE+"="+o.getCostoTotale()+", "+
+				(o.getDataChiusura()!=null?COLUMN_ORDINE_GUEST_CODE+"=\""+o.getGuestCode()+"\", ":null)+
 				"WHERE "+COLUMN_ORDINE_ID+"="+o.getID();
 		Connection con;
 		Savepoint sp;
