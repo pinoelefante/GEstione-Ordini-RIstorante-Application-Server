@@ -5,8 +5,13 @@ import it.geori.as.data.interfaces.Identifier;
 import java.util.ArrayList;
 
 public class Ordine implements Identifier{
-	public final static int STATO_CREATO=0,
-			STATO_IN_CORSO=1, STATO_IN_PREPARAZIONE=2,STATO_PREPARATO=3,STATO_PAGATO=10;
+	public final static int 
+			STATO_CREATO=0,
+			STATO_IN_CORSO=1, 
+			STATO_IN_PREPARAZIONE=2,
+			STATO_PREPARATO=3,
+			STATO_PAGATO=10;
+	
 	private Integer id, tavolo, coperti, sconto, servitoDa, statoOrdine;
 	private double costoTotale;
 	private String dataCreazione, dataChiusura, guestCode;
@@ -128,7 +133,7 @@ public class Ordine implements Identifier{
 		}
 		return false;
 	}
-	public boolean removeDettaglioOrdine(int id) throws Exception{
+	public boolean removeDettaglioOrdine(int id){
 		for(int i=0;i<dettagli_ordine.size();i++){
 			OrdineDettagli o = dettagli_ordine.get(i);
 			if(o.getID()==id && o.isRemovable()){

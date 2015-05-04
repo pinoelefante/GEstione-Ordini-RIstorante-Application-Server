@@ -181,7 +181,7 @@ public class DBOrdini extends CacheManager {
 		}
 		return res;
 	}
-	public Ordine getOrdine(int id){
+	public Ordine getOrdineByID(int id){
 		Identifier order = getItem(id);
 		if(order!=null)
 			return (Ordine)order;
@@ -389,7 +389,7 @@ public class DBOrdini extends CacheManager {
 		return totale;
 	}
 	public boolean calcolaTotale(int id){
-		Ordine ordine = getOrdine(id);
+		Ordine ordine = getOrdineByID(id);
 		return calcolaTotale(ordine);
 	}
 	public boolean calcolaTotale(Ordine o){
@@ -449,7 +449,7 @@ public class DBOrdini extends CacheManager {
 		return res;
 	}
 	public boolean chiudiOrdine(int id){
-		Ordine ord = getOrdine(id);
+		Ordine ord = getOrdineByID(id);
 		if(setStatoOrdineDettagliAll(ord, Ordine.STATO_PAGATO)){
 			int lastStatus = ord.getStatoOrdine();
 			String lastGuestCode = ord.getGuestCode();
@@ -697,7 +697,7 @@ public class DBOrdini extends CacheManager {
 		return false;
 	}
 	public boolean addDettagliOrdineToOrdine(ArrayList<OrdineDettagli> detts, int id){
-		Ordine ordine = getOrdine(id);
+		Ordine ordine = getOrdineByID(id);
 		Connection con = null;
 		Savepoint sp = null;
 		try {
@@ -830,5 +830,89 @@ public class DBOrdini extends CacheManager {
 		if(numQueries==0)
 			return "";
 		return query;
+	}
+	public int removeItemsFromOrder(ArrayList<OrdineDettagli> dett, int idOrdine){
+		Ordine ordine = getOrdineByID(idOrdine);
+		Connection con = null;
+		Savepoint sp = null;
+		try {
+			con = DBConnectionPool.getConnection();
+			sp = con.setSavepoint();
+		}
+		catch (SQLException e) {
+			e.printStackTrace();
+			return 0;
+		}
+		int removed = 0;
+		boolean res = false;
+		try {
+			for(int i=0;i<dett.size();i++){
+				res = ordine.removeDettaglioOrdine(dett.get(i).getID());
+				if(res){
+					removed++;
+					String query = "DELETE FROM "+TABLE_ORDINE_DETTAGLI_NAME+" WHERE "+COLUMN_ORDINE_DETTAGLI_ID+"="+dett.get(i).getID();
+					PreparedStatement st = con.prepareStatement(query);
+					if(st.executeUpdate()<=0)
+						ordine.addDettaglioOrdine(dett.get(i));
+					else
+						con.commit();
+					st.close();
+				}
+			}
+		}
+		catch(Exception e){
+			e.printStackTrace();
+			try {
+				con.rollback(sp);
+			}
+			catch (SQLException e1) {
+				e1.printStackTrace();
+			}
+		}
+		finally {
+			DBConnectionPool.releaseConnection(con);
+		}
+		return removed;
+	}
+	public Ordine getOrdineByGuestCode(String guestCode){
+		if(guestCode == null)
+			return null;
+		String query = "SELECT * FROM "+TABLE_ORDINE_NAME+" WHERE "+COLUMN_ORDINE_GUEST_CODE+"=\""+guestCode+"\"";
+		Connection con = null;
+		PreparedStatement st = null;
+		ResultSet rs = null;
+		try {
+			con = DBConnectionPool.getConnection();
+			st = con.prepareStatement(query);
+			rs = st.executeQuery();
+			if(rs.next()){
+				Ordine ordine = parseOrdine(rs);
+				if(getOrdineDettagli(con, ordine)){
+					addItemToCache(ordine);
+				}
+				return ordine;
+			}
+		}
+		catch (SQLException e) {
+			e.printStackTrace();
+		}
+		finally {
+			if(rs!=null)
+				try {
+					rs.close();
+				}
+				catch (SQLException e) {
+					e.printStackTrace();
+				}
+			if(st!=null)
+				try {
+					st.close();
+				}
+				catch (SQLException e) {
+					e.printStackTrace();
+				}
+			DBConnectionPool.releaseConnection(con);
+		}
+		return null;
 	}
 }

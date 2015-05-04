@@ -255,15 +255,18 @@ public class XMLDocumentCreator {
 	private static Element elementOrdineDettagli(OrdineDettagli dett){
 		Element dettaglio = new Element("dettaglio");
 		
+		Element id = new Element("id");
 		Element quant = new Element("quantita");
 		Element stato = new Element("stato");
 		Element note = new Element("note");
 		Element prodotto = new Element("list_prodotti");
 		
+		id.addContent(dett.getID()+"");
 		quant.addContent(dett.getQuantita()+"");
 		stato.addContent(dett.getStato()+"");
 		note.addContent(dett.getNote());
 		
+		dettaglio.addContent(id);
 		dettaglio.addContent(quant);
 		dettaglio.addContent(stato);
 		dettaglio.addContent(note);
