@@ -13,7 +13,7 @@ public class Ordine implements Identifier{
 	private ArrayList<OrdineDettagli> dettagli_ordine;
 	
 	public Ordine(int id, int tavolo, int coperti, int servitoDa, String dataCreazione, String guestCode) {
-		this(id, tavolo, coperti, 0, servitoDa, STATO_CREATO, 0.0f, dataCreazione, "", guestCode);
+		this(id, tavolo, coperti, 0, servitoDa, STATO_CREATO, 0.0f, dataCreazione, null, guestCode);
 	}
 	public Ordine(int id, int tavolo, int coperti, int sconto, int servitoda, int statoOrdine, double costo, String creazione, String chiusura, String guest){
 		setId(id);

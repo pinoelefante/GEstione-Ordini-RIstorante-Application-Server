@@ -56,7 +56,7 @@ public class ServletOrdini extends HttpServlet{
 						int tavolo = Integer.parseInt(add_order_tavolo);
 						int coperti = Integer.parseInt(add_order_num_coperti);
 						Integer idServedBy = AuthenticatedUsers.getInstance().getIDUser(req.getCookies());
-						Ordine ordine = new Ordine(0, tavolo, coperti, idServedBy, "", "");
+						Ordine ordine = new Ordine(0, tavolo, coperti, idServedBy, null, null);
 						boolean res = DBOrdini.getInstance().addNewOrder(ordine);
 						if(res)
 							docResponse = XMLDocumentCreator.listOrdine(ordine);
@@ -228,7 +228,9 @@ public class ServletOrdini extends HttpServlet{
 			Element e_prodotto = (Element) prodotti.get(i);
 			Prodotto p = parseProdotto(e_prodotto);
 			List ingredientiCon=e_prodotto.getChild("con").getChildren("");
+			//TODO
 			List ingredientiSenza=e_prodotto.getChild("senza").getChildren("");
+			//TODO
 		}
 		return null;
 	}
@@ -240,11 +242,13 @@ public class ServletOrdini extends HttpServlet{
 		
 		return null;
 	}
+	/*
 	public static void main(String[] args){
 		ServletOrdini s = new ServletOrdini();
 		Document xml = s.readXML("PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz48ZGV0dGFnbGk_PGRldHRhZ2xpbz48cXVhbnRpdGE_MTwvcXVhbnRpdGE_PHN0YXRvPjA8L3N0YXRvPjxub3RlPlBvc2F0ZSBjYWxkZTwvbm90ZT48bGlzdF9wcm9kb3R0aT48cHJvZG90dG8_PGlkPjE8L2lkPjxub21lPkNsYXNzaWNvPC9ub21lPjxwcmV6em8_Mi41PC9wcmV6em8_PGRlc2NyaXppb25lPlBhbmlubyB0cmFkaXppb25hbGUgY29uIHByb3NjaXV0dG8gZSBtYWlvbmVzZTwvZGVzY3JpemlvbmU_PGluZ3JlZGllbnRpPjxpbmdyZWRpZW50ZT48aWQ_MTwvaWQ_IDxub21lPlByb3NjaXV0dG88L25vbWU_PHByZXp6bz4wLjU8L3ByZXp6bz48L2luZ3JlZGllbnRlPjwvaW5ncmVkaWVudGk_PGNvbiAvPjxzZW56YSAvPjwvcHJvZG90dG8_PC9saXN0X3Byb2RvdHRpPjwvZGV0dGFnbGlvPjwvZGV0dGFnbGk_", true);
 		s.parseXML(xml);
 	}
+	*/
 	private String deBASE64(String base64){
 		byte[] decoded = Base64.getDecoder().decode(base64);
 		return new String(decoded);
