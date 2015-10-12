@@ -76,6 +76,14 @@ public class XMLDocumentCreator {
 		Document doc = new Document(root);
 		return doc;
 	}
+	public static Document login(Map<String, String> login){
+		Element root = getBooleanElement(login!=null, "");
+		Element nome = new Element("nome");
+		nome.addContent(login.get("nome"));
+		root.addContent(nome);
+		Document doc = new Document(root);
+		return doc;
+	}
 	public static Document listIngredienti(ArrayList<Ingrediente> l){
 		Element root = getBooleanElement(true, "");
 		Element main_ingredienti = new Element("ingredienti");
@@ -95,6 +103,17 @@ public class XMLDocumentCreator {
 			main_tavoli.addContent(tavolo);
 		}
 		root.addContent(main_tavoli);
+		Document doc = new Document(root);
+		return doc;
+	}
+	public static Document listProdotti(ArrayList<Prodotto> l){
+		Element root = getBooleanElement(true, "");
+		Element main_prodotti = new Element("prodotti");
+		for(Prodotto p : l){
+			Element prod = elementProdotto(p);
+			main_prodotti.addContent(prod);
+		}
+		root.addContent(main_prodotti);
 		Document doc = new Document(root);
 		return doc;
 	}
@@ -298,5 +317,15 @@ public class XMLDocumentCreator {
 		}
 		dettaglio.addContent(prodotto);
 		return dettaglio;
+	}
+	public static Document listProdottoCategoria(ArrayList<ProdottoCategoria> lc) {
+		Element root = getBooleanElement(true, "");
+		Element categorie = new Element("categorie");
+		for(ProdottoCategoria cat : lc){
+			Element catXml = elementProdottoCategoria(cat);
+			categorie.addContent(catXml);
+		}
+		root.addContent(categorie);
+		return new Document(root);
 	}
 }

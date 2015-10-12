@@ -58,7 +58,7 @@ public class ServletAuthentication extends HttpServlet {
 						resp.addCookie(cookie_sess);
 						resp.addCookie(cookie_nome);
 					}
-					xml = XMLDocumentCreator.operationStatus(login!=null, "");
+					xml = XMLDocumentCreator.login(login);
 				}
 				break;
 			case COMMAND_LOGOUT:

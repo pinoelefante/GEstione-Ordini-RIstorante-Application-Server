@@ -10,7 +10,7 @@ public class Prodotto implements Identifier{
 	private double prezzo;
 	private ArrayList<Ingrediente> ingredienti;
 	
-	public Prodotto(int c, int p, String n, String d, double pr){
+	public Prodotto(Integer c, int p, String n, String d, double pr){
 		idCategoria = c;
 		idProdotto = p;
 		nomeProdotto = n;

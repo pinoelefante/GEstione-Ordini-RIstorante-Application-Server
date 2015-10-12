@@ -3,6 +3,7 @@ package it.geori.as.controllers;
 import it.geori.as.data.Ingrediente;
 import it.geori.as.data.Prodotto;
 import it.geori.as.data.ProdottoCategoria;
+import it.geori.as.data.interfaces.Identifier;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -13,6 +14,7 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 
 public class DBProdotti extends CacheManager {
 	private static DBProdotti instance;
@@ -24,6 +26,7 @@ public class DBProdotti extends CacheManager {
 	}
 	private DBProdotti(){
 		super();
+		loadListProdottoCategoria();
 	}
 	private final static String TABLE_NAME_PRODOTTI = "prodotto",
 			COLUMN_PRODOTTO_ID="id_prodotto",
@@ -60,8 +63,9 @@ public class DBProdotti extends CacheManager {
 			if(st.executeUpdate()>0){
 				ResultSet rs = st.getGeneratedKeys();
 				if(rs.next()){
-					int idProdotto = rs.getInt(COLUMN_PRODOTTO_ID);
+					int idProdotto = rs.getInt(1);
 					p.setID(idProdotto);
+					con.commit();
 					boolean insIngr = addProdottiDettagli(p.getID(), p.getIngredienti());
 					if(insIngr){
 						con.commit();
@@ -268,6 +272,7 @@ public class DBProdotti extends CacheManager {
 			for(Ingrediente ing : ingr){
 				String q = "INSERT INTO "+TABLE_NAME_PRODOTTI_DETT+" ("+COLUMN_PRODOTTO_DETT_PRODOTTO+","+COLUMN_PRODOTTO_DETT_INGREDIENTE+")"+
 						" VALUES ("+idProdotto+","+ing.getID()+")";
+				System.out.println(q);
 				st = con.prepareStatement(q);
 				if(st.executeUpdate()<=0){
 					insIngr = false;
@@ -276,6 +281,9 @@ public class DBProdotti extends CacheManager {
 			}
 			if(!insIngr){
 				con.rollback(sp);
+			}
+			else {
+				con.commit();
 			}
 			return insIngr;
 		} 
@@ -312,6 +320,50 @@ public class DBProdotti extends CacheManager {
 		}
 	}
 	private Map<Integer, ProdottoCategoria> cacheCategorie = new HashMap<>();
+	private void loadListProdottoCategoria(){
+		String query = "SELECT * FROM "+TABLE_NAME_CATEGORIE + " ORDER BY "+COLUMN_CATEGORIE_NOME;
+		Connection con;
+		try {
+			con = DBConnectionPool.getConnection();
+		}
+		catch (SQLException e) {
+			e.printStackTrace();
+			return;
+		}
+		try(PreparedStatement st = con.prepareStatement(query); ResultSet rs = st.executeQuery())
+		{
+			while(rs.next()){
+				int id = rs.getInt(COLUMN_CATEGORIE_ID);
+				String nome = rs.getString(COLUMN_CATEGORIE_NOME);
+				ProdottoCategoria cat = new ProdottoCategoria(id, nome);
+				cacheCategorie.put(id, cat);
+			}
+		}
+		catch (SQLException e) {
+			e.printStackTrace();
+		}
+		finally
+		{
+			DBConnectionPool.releaseConnection(con);
+		}
+	}
+	public ArrayList<ProdottoCategoria> getListProdottoCategoria(){
+		ArrayList<ProdottoCategoria> list = new ArrayList<ProdottoCategoria>(cacheCategorie.size());
+		for(ProdottoCategoria cat : cacheCategorie.values()){
+			int index = -1;
+			for(int i = 0;i<list.size();i++){
+				if(cat.getNomeCategoria().compareTo(list.get(i).getNomeCategoria())<0){
+					index = i;
+					break;
+				}
+			}
+			if(index<0)
+				list.add(cat);
+			else
+				list.add(index, cat);
+		}
+		return list;
+	}
 	public ProdottoCategoria getProdottoCategoria(int id){
 		if(cacheCategorie.containsKey(id))
 			return cacheCategorie.get(id);
@@ -456,4 +508,12 @@ public class DBProdotti extends CacheManager {
 		DBConnectionPool.releaseConnection(con);
 		return res;
 	}
+	public ArrayList<Prodotto> getCacheList(){
+		ArrayList<Prodotto> list = new ArrayList<Prodotto>();
+		for(Entry<Integer, Identifier> p : getCache().entrySet()){
+			list.add((Prodotto)p.getValue());
+		}
+		return list;
+	}
+	
 }

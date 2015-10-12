@@ -4,6 +4,7 @@ import it.geori.as.communication.ServletAuthentication;
 import it.geori.as.communication.ServletIngredienti;
 import it.geori.as.communication.ServletMenu;
 import it.geori.as.communication.ServletOrdini;
+import it.geori.as.communication.ServletProdotti;
 import it.geori.as.communication.ServletTavoli;
 
 import org.eclipse.jetty.webapp.WebAppContext;
@@ -24,6 +25,7 @@ public class AppContextBuilder {
 		webAppContext.addServlet(ServletTavoli.class, "/ServletTavoli");
 		webAppContext.addServlet(ServletMenu.class, "/ServletMenu");
 		webAppContext.addServlet(ServletOrdini.class, "/ServletOrdini");
+		webAppContext.addServlet(ServletProdotti.class, "/ServletProdotti");
 		
 		return webAppContext;
 	}

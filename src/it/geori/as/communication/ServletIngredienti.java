@@ -33,7 +33,7 @@ public class ServletIngredienti extends HttpServlet {
 						xml = XMLDocumentCreator.operationStatus(false, Localization.MESSAGGIO_SOLO_ADMIN);
 						break;
 					}
-					String nomeIngr = req.getParameter("nome_ingrediente");
+					String nomeIngr = req.getParameter("nome");
 					String prezzoIngr = req.getParameter("prezzo");
 					if(nomeIngr!=null && prezzoIngr!=null){
 						double prezzo = 0;

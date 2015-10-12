@@ -14,7 +14,7 @@ import java.util.Map.Entry;
 import javax.servlet.http.Cookie;
 
 public class AuthenticatedUsers {
-	private final static int USER_ADMIN = 2, USER_NORMAL = 1, USER_GUEST = 0;
+	private final static int USER_ADMIN = 2, USER_NORMAL = 1;
 	private SecureRandom random = new SecureRandom();
 	
 	private static AuthenticatedUsers instance;
