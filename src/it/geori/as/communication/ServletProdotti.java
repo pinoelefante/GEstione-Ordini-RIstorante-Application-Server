@@ -115,12 +115,20 @@ public class ServletProdotti extends HttpServlet {
 				String prezzoUpd = req.getParameter("prezzo");
 				String newCat = req.getParameter("categoria");
 				String descrUpd = req.getParameter("descrizione");
-				if (nomeUpd != null && idUpd != null && prezzoUpd != null) {
+				String ingrs = req.getParameter("ingredienti");
+				if (nomeUpd != null && idUpd != null && prezzoUpd != null && ingrs != null) {
 					try {
 						int id = Integer.parseInt(idUpd);
 						double prezzo = Double.parseDouble(prezzoUpd);
 						int categoria = Integer.parseInt(newCat);
+						
 						Prodotto p = new Prodotto(categoria, id, nomeUpd, descrUpd, prezzo);
+						String[] ingrs_new = ingrs.split(";");
+						for(int i=0;i<ingrs_new.length;i++){
+							Ingrediente ingr = DBIngredienti.getInstance().getIngredienteByID(Integer.parseInt(ingrs_new[i]));
+							if(ingr!=null)
+								p.getIngredienti().add(ingr);
+						}
 						if (DBProdotti.getInstance().updateProdotto(p)) {
 							xml = XMLDocumentCreator.operationStatus(true, "");
 						}
