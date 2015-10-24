@@ -428,4 +428,50 @@ public class DBMenu extends CacheManager {
 		if(!insertOK)
 			list.add(p);
 	}
+	public boolean setProdottiMenu(int idmenu, ArrayList<Integer> prodotti){
+		Menu menu = getMenuByID(idmenu);
+		ArrayList<Integer> rimuovere = prodottiDaRimuovere(menu, prodotti);
+		ArrayList<Integer> aggiungere = prodottiDaAggiungere(menu, prodotti);
+		int rimossi = 0;
+		for(Integer id : rimuovere){
+			if(removeItemFromMenu(idmenu, id))
+				rimossi++;
+		}
+		int aggiunti = 0;
+		for(Integer id : aggiungere){
+			if(addItemToMenu(idmenu, id))
+				aggiunti++;
+		}
+		return rimossi+aggiunti > 0;
+	}
+	private ArrayList<Integer> prodottiDaRimuovere(Menu menu, ArrayList<Integer> n_prodotti){
+		ArrayList<Integer> rimuovere = new ArrayList<Integer>();
+		for(Prodotto prod : menu.getListProdotti().values()){
+			boolean found = false;
+			for(int i=0;i<n_prodotti.size();i++){
+				if(prod.getID() == n_prodotti.get(i)){
+					found = true;
+					break;
+				}
+			}
+			if(!found)
+				rimuovere.add(prod.getID());
+		}
+		return rimuovere;
+	}
+	private ArrayList<Integer> prodottiDaAggiungere(Menu menu, ArrayList<Integer> n_prodotti){
+		ArrayList<Integer> aggiungere = new ArrayList<Integer>();
+		for(int i=0;i<n_prodotti.size();i++){
+			boolean found = false;
+			for(Prodotto prod : menu.getListProdotti().values()){
+				if(prod.getID() == n_prodotti.get(i)){
+					found = true;
+					break;
+				}
+			}
+			if(!found)
+				aggiungere.add(n_prodotti.get(i));
+		}
+		return aggiungere;
+	}
 }

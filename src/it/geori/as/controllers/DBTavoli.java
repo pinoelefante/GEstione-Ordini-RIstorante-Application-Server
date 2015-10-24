@@ -52,6 +52,35 @@ public class DBTavoli extends CacheManager {
 			e.printStackTrace();
 		}
 	}
+	public Tavolo getTavoloByID(int id){
+		Identifier tId = getItem(id);
+		if(tId!=null){
+			return (Tavolo)tId;
+		}
+		else {
+			String query = "SELECT * FROM "+TABLE_NAME+" WHERE "+COLUMN_ID+"="+id;
+			Tavolo tavolo = null;
+			try {
+				Connection con = DBConnectionPool.getConnection();
+				PreparedStatement st = con.prepareStatement(query);
+				ResultSet rs = st.executeQuery();
+				if(rs.next()){
+					int idT = rs.getInt(COLUMN_ID);
+					String nome = rs.getString(COLUMN_NOMETAVOLO);
+					double prezzo = rs.getDouble(COLUMN_COPERTO);
+					tavolo = new Tavolo(idT, prezzo, nome);
+					addItemToCache(tavolo);
+				}
+				rs.close();
+				st.close();
+				DBConnectionPool.releaseConnection(con);
+			} 
+			catch (SQLException e) {
+				e.printStackTrace();
+			}
+			return tavolo;
+		}
+	}
 	public boolean addTable(Tavolo t){
 		String query = "INSERT INTO "+TABLE_NAME+" ("+COLUMN_NOMETAVOLO+","+COLUMN_COPERTO+") VALUES (\""+t.getNomeTavolo()+"\","+t.getCostoCoperto()+")";
 		Connection con;

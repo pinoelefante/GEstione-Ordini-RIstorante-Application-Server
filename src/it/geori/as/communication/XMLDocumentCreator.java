@@ -157,6 +157,8 @@ public class XMLDocumentCreator {
 		descr.addContent(p.getDescrizione());
 		Element prezzo = new Element("prezzo");
 		prezzo.addContent(p.getPrezzo()+"");
+		Element categoria = new Element("id_categoria");
+		categoria.addContent(p.getIdCategoria()+"");
 		Element ingredienti = new Element("ingredienti");
 		for(Ingrediente i : p.getIngredienti()){
 			Element ingr = elementIngrediente(i);
@@ -166,6 +168,7 @@ public class XMLDocumentCreator {
 		prod.addContent(nome);
 		prod.addContent(prezzo);
 		prod.addContent(descr);
+		prod.addContent(categoria);
 		prod.addContent(ingredienti);
 		return prod;
 	}
@@ -215,6 +218,16 @@ public class XMLDocumentCreator {
 		categoriaNode.setAttribute("nome",categoria.getNomeCategoria());
 		categoriaNode.setAttribute("id", categoria.getID()+"");
 		return categoriaNode;
+	}
+	public static Document listOrdini(ArrayList<Ordine> ordini){
+		Element root = getBooleanElement(true, "");
+		Element ordiniXml = new Element("ordini");
+		for(Ordine ord : ordini){
+			Element ordineXml = elementOrdine(ord);
+			ordiniXml.addContent(ordineXml);
+		}
+		root.addContent(ordiniXml);
+		return new Document(root);
 	}
 	public static Document listOrdine(Ordine o){
 		Element root = getBooleanElement(true, "");

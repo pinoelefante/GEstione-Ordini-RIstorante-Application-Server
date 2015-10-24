@@ -27,6 +27,7 @@ public class DBProdotti extends CacheManager {
 	private DBProdotti(){
 		super();
 		loadListProdottoCategoria();
+		loadProdotti();
 	}
 	private final static String TABLE_NAME_PRODOTTI = "prodotto",
 			COLUMN_PRODOTTO_ID="id_prodotto",
@@ -220,6 +221,42 @@ public class DBProdotti extends CacheManager {
 			}
 		}
 		return list;
+	}
+	private void loadProdotti(){
+		clean(); //pulisce la cache dei prodotti
+		String query = "SELECT * FROM "+TABLE_NAME_PRODOTTI;
+		try {
+			Connection con = DBConnectionPool.getConnection();
+			PreparedStatement st = con.prepareStatement(query);
+			ResultSet rs = st.executeQuery();
+			if(rs.next()){
+				int idP = rs.getInt(COLUMN_PRODOTTO_ID);
+				int idCat = rs.getInt(COLUMN_PRODOTTO_CATEGORIA);
+				String nome = rs.getString(COLUMN_PRODOTTO_NOME);
+				double prezzo = rs.getDouble(COLUMN_PRODOTTO_PREZZO);
+				String desc = rs.getString(COLUMN_PRODOTTO_DESCRIZIONE);
+				Prodotto p = new Prodotto(idCat, idP, nome, desc, prezzo);
+				addItemToCache(p);
+				String q2 = "SELECT dettagli."+DBIngredienti.COLUMN_INGREDIENTI_ID+" FROM "+TABLE_NAME_PRODOTTI+" AS prod JOIN "+TABLE_NAME_PRODOTTI_DETT+" AS dettagli WHERE prod."+COLUMN_PRODOTTO_ID+"=dettagli."+COLUMN_PRODOTTO_DETT_PRODOTTO+" AND prod."+COLUMN_PRODOTTO_ID+"="+p.getID();
+				PreparedStatement stP = con.prepareStatement(q2);
+				ResultSet rsP = stP.executeQuery();
+				while(rsP.next()){
+					int idIngr = rsP.getInt(COLUMN_PRODOTTO_DETT_INGREDIENTE);
+					Ingrediente ingr = DBIngredienti.getInstance().getIngredienteByID(idIngr);
+					if(ingr!=null){
+						p.getIngredienti().add(ingr);
+					}
+				}
+				rsP.close();
+				stP.close();
+			}
+			rs.close();
+			st.close();
+			DBConnectionPool.releaseConnection(con);
+		} 
+		catch (SQLException e) {
+			e.printStackTrace();
+		}
 	}
 	public Prodotto getProdottoByID(int id){
 		Prodotto p = (Prodotto) getItem(id);

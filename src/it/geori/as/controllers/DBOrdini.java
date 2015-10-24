@@ -393,13 +393,15 @@ public class DBOrdini extends CacheManager {
 		return calcolaTotale(ordine);
 	}
 	public boolean calcolaTotale(Ordine o){
-		double totale = calcolaTotaleOrdine(o)+calcolaTotaleCoperti(o);
+		double totaleOrdine = calcolaTotaleOrdine(o);
+		double totaleCoperti = calcolaTotaleCoperti(o);
+		double totale = totaleOrdine + totaleCoperti;
 		totale = totale - ((totale/100)*o.getSconto());
 		o.setCostoTotale(totale);
 		return updateOrdine(o);
 	}
 	private double calcolaTotaleCoperti(Ordine o){
-		Tavolo tavolo = (Tavolo) DBTavoli.getInstance().getItem(o.getID());
+		Tavolo tavolo = DBTavoli.getInstance().getTavoloByID(o.getTavolo());
 		return o.getCoperti()*tavolo.getCostoCoperto();
 	}
 	public boolean updateOrdine(Ordine o){
@@ -576,7 +578,8 @@ public class DBOrdini extends CacheManager {
 	}
 	public ArrayList<Ordine> getOrdiniUltime24OreAperti(){
 		String query = "SELECT * FROM "+TABLE_ORDINE_NAME+" WHERE "+COLUMN_ORDINE_STATO_ORDINE+"!="+Ordine.STATO_PAGATO
-				+" AND "+COLUMN_ORDINE_DATA_ORDINE+">"+(new Timestamp(System.currentTimeMillis()-UN_GIORNO_MS))+" ORDER BY "+COLUMN_ORDINE_DATA_ORDINE+" DESC";
+				+" AND "+COLUMN_ORDINE_DATA_ORDINE+"> DATE_SUB(NOW(), INTERVAL 1 DAY)"/*+(new Timestamp(System.currentTimeMillis()-UN_GIORNO_MS))*/
+				+" ORDER BY "+COLUMN_ORDINE_DATA_ORDINE+" DESC";
 		Connection con = null;
 		PreparedStatement st = null;
 		ResultSet rs = null;
@@ -592,6 +595,7 @@ public class DBOrdini extends CacheManager {
 			return ordini;
 		}
 		catch (SQLException e) {
+			System.out.println(query);
 			e.printStackTrace();
 		}
 		finally {

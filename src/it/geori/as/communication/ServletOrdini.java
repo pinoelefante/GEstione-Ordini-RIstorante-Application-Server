@@ -34,6 +34,7 @@ public class ServletOrdini extends HttpServlet{
 		COMMAND_DEL_ORDER="order_del",
 		COMMAND_MOD_ORDER="order_modify",
 		COMMAND_LIST_ORDER="order_list",
+		COMMAND_ORDER_LIST_ALL = "order_list_all",
 		COMMAND_ADD_TO_ORDER="order_add_to",
 		COMMAND_REMOVE_FROM_ORDER="order_remove_from",
 		COMMAND_MODIFY_FROM_ORDER="order_modify_from",
@@ -274,6 +275,14 @@ public class ServletOrdini extends HttpServlet{
 							docResponse = XMLDocumentCreator.listOrdine(o);
 						}
 					}
+					break;
+				case COMMAND_ORDER_LIST_ALL:
+					if(!AuthenticatedUsers.getInstance().isAuthenticated(req.getCookies())){
+						docResponse = XMLDocumentCreator.operationStatus(false, Localization.MESSAGGIO_ERRORE_NON_LOGGATO);
+						break;
+					}
+					ArrayList<Ordine> ordini24Ore = DBOrdini.getInstance().getOrdiniUltime24OreAperti();
+					docResponse = XMLDocumentCreator.listOrdini(ordini24Ore);
 					break;
 			}
 		}

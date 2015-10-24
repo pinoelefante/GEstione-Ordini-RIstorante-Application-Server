@@ -25,6 +25,7 @@ public class ServletMenu extends HttpServlet {
 		COMMAND_UPDATE_MENU="menu_update",
 		COMMAND_CREATE_MENU_FROM="menu_copy",
 		COMMAND_ADD_ITEM_TO_MENU="menu_add_item",
+		COMMAND_SET_ITEMS_TO_MENU="menu_set_items",
 		COMMAND_REMOVE_ITEM_FROM_MENU="menu_remove_item",
 		COMMAND_GET_LIST_PRODOTTI_MENU="menu_list_prodotti";
 	@Override
@@ -123,6 +124,26 @@ public class ServletMenu extends HttpServlet {
 							xml = XMLDocumentCreator.operationStatus(res, res?"":"");
 						}
 						catch(Exception e){}
+					}
+					break;
+				case COMMAND_SET_ITEMS_TO_MENU:
+					if(!AuthenticatedUsers.getInstance().isAdmin(req.getCookies())){
+						xml = XMLDocumentCreator.operationStatus(false, Localization.MESSAGGIO_SOLO_ADMIN);
+						break;
+					}
+					String set_id_menu = req.getParameter("menu");
+					String set_prodotti = req.getParameter("prodotti");
+					if(set_id_menu!=null && set_prodotti!=null)
+					{
+						int menu = Integer.parseInt(set_id_menu);
+						String[] ids_prodotti = set_prodotti.split(";");
+						ArrayList<Integer> id_prodotti = new ArrayList<Integer>(ids_prodotti.length);
+						for(int i=0;i<ids_prodotti.length;i++){
+							int id = Integer.parseInt(ids_prodotti[i]);
+							id_prodotti.add(id);
+						}
+						boolean res = DBMenu.getInstance().setProdottiMenu(menu, id_prodotti);
+						xml = XMLDocumentCreator.operationStatus(res, "");
 					}
 					break;
 				case COMMAND_REMOVE_ITEM_FROM_MENU:
